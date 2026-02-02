@@ -11,8 +11,6 @@ class AppTheme {
         onPrimary: Colors.white,
         secondary: AppColors.primary,
         onSecondary: Colors.white,
-        background: AppColors.background,
-        onBackground: AppColors.black,
         surface: AppColors.surface,
         onSurface: AppColors.black,
         error: AppColors.error,
@@ -72,7 +70,6 @@ class AppTheme {
         onPrimary: Colors.white,
         secondary: AppColors.primary,
         surface: AppColors.driverSurface,
-        background: AppColors.driverBackground,
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
       appBarTheme: AppBarTheme(

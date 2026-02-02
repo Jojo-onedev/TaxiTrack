@@ -26,7 +26,7 @@ class DriverHomeScreen extends StatelessWidget {
                 title: const Text('Disponibilité (En Service)'),
                 value: true,
                 onChanged: (val) {},
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
               ),
             ],
           ),
