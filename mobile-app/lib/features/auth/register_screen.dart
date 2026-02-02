@@ -50,6 +50,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           }
@@ -59,10 +63,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
             return Scaffold(
               backgroundColor: AppColors.white,
               appBar: AppBar(
-                title: const Text('Inscription Client'),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: AppColors.black,
+                  ),
                   onPressed: () => Navigator.pop(context),
+                ),
+                title: const Text(
+                  'Create Account',
+                  style: TextStyle(
+                    color: AppColors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               body: SafeArea(
@@ -77,64 +92,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Créer un compte',
+                          'Join TaxiTrack',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: AppColors.black,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Veuillez remplir les informations ci-dessous pour rejoindre TaxiTrack.',
-                          style: TextStyle(fontSize: 14, color: AppColors.grey),
+                        Text(
+                          'Fill in the details below to get started',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.grey.withOpacity(0.8),
+                          ),
                         ),
                         const SizedBox(height: 32),
-                        AppTextField(
-                          controller: _firstNameController,
-                          labelText: 'Prénom',
-                          hintText: 'Ex: Thomas',
-                          prefixIcon: Icons.person_outline,
-                          validator: (v) => v!.isEmpty ? 'Champ requis' : null,
-                        ),
-                        const SizedBox(height: 20),
-                        AppTextField(
-                          controller: _lastNameController,
-                          labelText: 'Nom',
-                          hintText: 'Ex: Durant',
-                          prefixIcon: Icons.person_outline,
-                          validator: (v) => v!.isEmpty ? 'Champ requis' : null,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AppTextField(
+                                controller: _firstNameController,
+                                labelText: 'First Name',
+                                hintText: 'John',
+                                prefixIcon: Icons.person_outline,
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Required' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: AppTextField(
+                                controller: _lastNameController,
+                                labelText: 'Last Name',
+                                hintText: 'Doe',
+                                prefixIcon: Icons.person_outline,
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Required' : null,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
                         AppTextField(
                           controller: _phoneController,
-                          labelText: 'Numéro de téléphone',
-                          hintText: '06 00 00 00 00',
+                          labelText: 'Phone Number',
+                          hintText: '+1 234 567 8900',
                           keyboardType: TextInputType.phone,
                           prefixIcon: Icons.phone_android,
-                          validator: (v) => v!.isEmpty ? 'Champ requis' : null,
+                          validator: (v) => v!.isEmpty ? 'Required' : null,
                         ),
                         const SizedBox(height: 20),
                         AppTextField(
                           controller: _residenceController,
-                          labelText: 'Lieu de résidence',
-                          hintText: 'Ex: Paris, France',
-                          prefixIcon: Icons.home_outlined,
-                          validator: (v) => v!.isEmpty ? 'Champ requis' : null,
+                          labelText: 'City',
+                          hintText: 'New York, USA',
+                          prefixIcon: Icons.location_city_outlined,
+                          validator: (v) => v!.isEmpty ? 'Required' : null,
                         ),
                         const SizedBox(height: 20),
                         AppTextField(
                           controller: _passwordController,
-                          labelText: 'Mot de passe',
-                          hintText: '********',
+                          labelText: 'Password',
+                          hintText: '••••••••',
                           isPassword: true,
                           prefixIcon: Icons.lock_outline,
                           validator: (v) =>
-                              v!.length < 6 ? 'Minimum 6 caractères' : null,
+                              v!.length < 6 ? 'Min 6 characters' : null,
                         ),
                         const SizedBox(height: 40),
                         AppButton(
-                          text: 'S\'inscrire',
+                          text: 'Create Account',
                           isLoading: state is AuthLoading,
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
@@ -151,6 +179,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           },
                         ),
                         const SizedBox(height: 24),
+                        Center(
+                          child: Text(
+                            'By signing up, you agree to our Terms & Privacy Policy',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.grey.withOpacity(0.6),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

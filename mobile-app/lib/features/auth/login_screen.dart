@@ -48,6 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           }
@@ -62,40 +66,62 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 60),
+                      const SizedBox(height: 40),
                       Center(
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          height: 100,
+                        child: Hero(
+                          tag: 'logo',
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: AppColors.primaryGradient,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              height: 80,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 48),
                       const Text(
-                        'Bienvenue',
+                        'Welcome Back',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: AppColors.black,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Connectez-vous pour continuer',
-                        style: TextStyle(fontSize: 16, color: AppColors.grey),
+                      Text(
+                        'Sign in to continue your journey',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.grey.withOpacity(0.8),
+                        ),
                       ),
                       const SizedBox(height: 40),
                       AppTextField(
                         controller: _phoneController,
-                        labelText: 'Numéro de téléphone',
-                        hintText: '06 00 00 00 00',
+                        labelText: 'Phone Number',
+                        hintText: '+1 234 567 8900',
                         keyboardType: TextInputType.phone,
                         prefixIcon: Icons.phone_android,
                       ),
                       const SizedBox(height: 24),
                       AppTextField(
                         controller: _passwordController,
-                        labelText: 'Mot de passe',
-                        hintText: '********',
+                        labelText: 'Password',
+                        hintText: '••••••••',
                         isPassword: true,
                         prefixIcon: Icons.lock_outline,
                       ),
@@ -104,12 +130,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {},
-                          child: const Text('Mot de passe oublié ?'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                          ),
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 32),
                       AppButton(
-                        text: 'Se connecter',
+                        text: 'Sign In',
                         isLoading: state is AuthLoading,
                         onPressed: () {
                           context.read<AuthBloc>().add(
@@ -120,11 +152,41 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
+                      const SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: AppColors.grey.withOpacity(0.3),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(
+                                color: AppColors.grey.withOpacity(0.6),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: AppColors.grey.withOpacity(0.3),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Vous n'avez pas de compte ?"),
+                          Text(
+                            "Don't have an account? ",
+                            style: TextStyle(
+                              color: AppColors.grey.withOpacity(0.8),
+                            ),
+                          ),
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).push(
@@ -133,13 +195,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               );
                             },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              padding: EdgeInsets.zero,
+                            ),
                             child: const Text(
-                              'S\'inscrire',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              'Sign Up',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
