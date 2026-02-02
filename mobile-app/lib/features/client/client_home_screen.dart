@@ -105,7 +105,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 _buildDestinationTile(
                   'Brooklyn Bridge',
                   '12 km away',
-                  Icons.bridge,
+                  Icons.account_balance,
                 ),
               ],
             ),
