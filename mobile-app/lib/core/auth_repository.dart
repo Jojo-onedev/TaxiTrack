@@ -4,6 +4,7 @@ enum UserRole { client, driver }
 
 class User extends Equatable {
   final String id;
+  final String email;
   final String firstName;
   final String lastName;
   final String phoneNumber;
@@ -11,6 +12,7 @@ class User extends Equatable {
 
   const User({
     required this.id,
+    required this.email,
     required this.firstName,
     required this.lastName,
     required this.phoneNumber,
@@ -18,14 +20,22 @@ class User extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, firstName, lastName, phoneNumber, role];
+  List<Object?> get props => [
+    id,
+    email,
+    firstName,
+    lastName,
+    phoneNumber,
+    role,
+  ];
 }
 
 abstract class AuthRepository {
-  Future<User?> login(String phoneNumber, String password);
+  Future<User?> login(String email, String password);
   Future<User?> signUp({
     required String firstName,
     required String lastName,
+    required String email,
     required String phoneNumber,
     required String password,
     String? residence,

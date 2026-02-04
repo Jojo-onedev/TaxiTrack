@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/app_theme.dart';
 import 'core/service_locator.dart';
+import 'core/auth_repository.dart';
+import 'features/auth/auth_bloc.dart';
+import 'features/auth/auth_bloc_impl.dart';
 import 'features/auth/splash_screen.dart';
 
 void main() async {
@@ -14,11 +18,15 @@ class TaxiTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TaxiTrack',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+    return BlocProvider(
+      create: (context) =>
+          AuthBloc(sl<AuthRepository>())..add(AuthCheckRequested()),
+      child: MaterialApp(
+        title: 'TaxiTrack',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        home: const SplashScreen(),
+      ),
     );
   }
 }

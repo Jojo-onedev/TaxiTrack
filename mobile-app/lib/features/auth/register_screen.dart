@@ -18,6 +18,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _residenceController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -28,6 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
     _residenceController.dispose();
     _passwordController.dispose();
@@ -135,6 +137,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 20),
                         AppTextField(
+                          controller: _emailController,
+                          labelText: 'Email Address',
+                          hintText: 'john@example.com',
+                          keyboardType: TextInputType.emailAddress,
+                          prefixIcon: Icons.email_outlined,
+                          validator: (v) => v!.isEmpty || !v.contains('@')
+                              ? 'Invalid email'
+                              : null,
+                        ),
+                        const SizedBox(height: 20),
+                        AppTextField(
                           controller: _phoneController,
                           labelText: 'Phone Number',
                           hintText: '+1 234 567 8900',
@@ -170,6 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 SignUpRequested(
                                   firstName: _firstNameController.text,
                                   lastName: _lastNameController.text,
+                                  email: _emailController.text,
                                   phoneNumber: _phoneController.text,
                                   password: _passwordController.text,
                                   residence: _residenceController.text,

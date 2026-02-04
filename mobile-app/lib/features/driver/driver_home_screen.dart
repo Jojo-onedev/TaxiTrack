@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_track/core/app_colors.dart';
 import 'package:taxi_track/core/app_theme.dart';
 import 'package:taxi_track/core/service_locator.dart';
+import 'package:taxi_track/features/auth/auth_bloc.dart';
+import 'package:taxi_track/features/auth/auth_bloc_impl.dart';
 import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
 import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
 import 'package:taxi_track/features/driver/incoming_ride_screen.dart';
@@ -136,29 +138,39 @@ class _DashboardTabState extends State<_DashboardTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hello, Marc',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[100],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Ready to hit the road?',
-                        style: TextStyle(fontSize: 16, color: Colors.grey[400]),
-                      ),
-                    ],
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final name = state is Authenticated
+                          ? state.user.firstName
+                          : 'Driver';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hello, $name',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[100],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Ready to hit the road?',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const DriverProfileScreen(),
+                          builder: (_) => DriverProfileScreen(),
                         ),
                       );
                     },

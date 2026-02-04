@@ -41,7 +41,11 @@ dependencies:
   shared_preferences: ^2.2.2
   flutter_svg: ^2.0.9
   dio: ^5.3.3
-  # mapbox_maps_flutter: ^1.0.0  # Temporarily disabled - requires token
+  flutter_secure_storage: ^10.0.0
+  flutter_map: ^7.0.0
+  latlong2: ^0.9.1
+  http: ^1.1.0
+  # mapbox_maps_flutter: ^1.0.0  # Disabled in favor of OpenStreetMap
 
 dev_dependencies:
   flutter_test:

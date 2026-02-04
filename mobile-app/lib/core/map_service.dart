@@ -1,39 +1,23 @@
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class MapService {
-  MapboxMap? _mapboxMap;
+  MapController? _mapController;
 
-  void setMapboxMap(MapboxMap mapboxMap) {
-    _mapboxMap = mapboxMap;
+  void setMapController(MapController controller) {
+    _mapController = controller;
   }
 
-  Future<void> animateToPosition(double latitude, double longitude) async {
-    if (_mapboxMap == null) return;
-
-    final cameraOptions = CameraOptions(
-      center: Point(coordinates: Position(longitude, latitude)),
-      zoom: 14.0,
-    );
-
-    await _mapboxMap!.flyTo(cameraOptions, MapAnimationOptions(duration: 1000));
+  void animateToPosition(double latitude, double longitude) {
+    if (_mapController == null) return;
+    _mapController!.move(LatLng(latitude, longitude), 14.0);
   }
 
-  Future<void> addMarker(
-    double latitude,
-    double longitude,
-    String iconName,
-  ) async {
-    if (_mapboxMap == null) return;
-
-    final pointAnnotationManager = await _mapboxMap!.annotations
-        .createPointAnnotationManager();
-
-    final pointAnnotation = PointAnnotationOptions(
-      geometry: Point(coordinates: Position(longitude, latitude)),
-      iconImage: iconName,
-      iconSize: 1.5,
+  void fitBounds(LatLng point1, LatLng point2) {
+    if (_mapController == null) return;
+    final bounds = LatLngBounds(point1, point2);
+    _mapController!.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
     );
-
-    await pointAnnotationManager.create(pointAnnotation);
   }
 }

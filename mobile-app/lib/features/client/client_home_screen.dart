@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:taxi_track/core/app_colors.dart';
 import 'package:taxi_track/core/service_locator.dart';
+import 'package:taxi_track/core/map_service.dart';
+import 'package:taxi_track/features/client/ride_history_screen.dart';
+import 'package:taxi_track/features/auth/auth_bloc.dart';
+import 'package:taxi_track/features/auth/auth_bloc_impl.dart';
+import 'package:taxi_track/features/client/search_bloc.dart';
 import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
 import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
 import 'package:taxi_track/features/client/active_ride_screen.dart';
 import 'package:taxi_track/features/client/client_profile_screen.dart';
 import 'package:taxi_track/features/client/ride_history_screen.dart';
 import 'package:taxi_track/shared/widgets/driver_info_card.dart';
-import 'package:taxi_track/shared/widgets/ride_status_overlay.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
@@ -23,7 +29,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   final List<Widget> _screens = [
     const _HomeTab(),
     const RideHistoryScreen(),
-    const Center(child: Text('Notifications')), // TODO: Implement notifications
+    const Center(child: Text('Notifications')),
   ];
 
   @override
@@ -74,29 +80,45 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   }
 }
 
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   const _HomeTab();
+
+  @override
+  State<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> {
+  final MapController _mapController = MapController();
+  LatLng _currentLocation = const LatLng(48.8566, 2.3522); // Paris default
+  LatLng? _destinationLocation;
 
   void _showDestinationSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _DestinationSheet(
-        onDestinationSelected:
-            (pickup, destination, pickupLat, pickupLng, destLat, destLng) {
-              Navigator.pop(sheetContext);
-              context.read<RideBlocImpl>().add(
-                bloc.RequestRide(
-                  pickupAddress: pickup,
-                  destinationAddress: destination,
-                  pickupLat: pickupLat,
-                  pickupLng: pickupLng,
-                  destinationLat: destLat,
-                  destinationLng: destLng,
-                ),
-              );
-            },
+      builder: (sheetContext) => BlocProvider(
+        create: (context) => sl<SearchBloc>(),
+        child: _DestinationSheet(
+          onDestinationSelected:
+              (pickup, destination, pickupLat, pickupLng, destLat, destLng) {
+                Navigator.pop(sheetContext);
+                setState(() {
+                  _destinationLocation = LatLng(destLat, destLng);
+                });
+                _mapController.move(_destinationLocation!, 14.0);
+                context.read<RideBlocImpl>().add(
+                  bloc.RequestRide(
+                    pickupAddress: pickup,
+                    destinationAddress: destination,
+                    pickupLat: pickupLat,
+                    pickupLng: pickupLng,
+                    destinationLat: destLat,
+                    destinationLng: destLng,
+                  ),
+                );
+              },
+        ),
       ),
     );
   }
@@ -106,7 +128,6 @@ class _HomeTab extends StatelessWidget {
     return BlocConsumer<RideBlocImpl, bloc.RideState>(
       listener: (context, state) {
         if (state is bloc.RideDriverFound) {
-          // Auto-navigate to active ride screen when driver is found
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => BlocProvider.value(
@@ -131,55 +152,47 @@ class _HomeTab extends StatelessWidget {
       builder: (context, state) {
         return Stack(
           children: [
-            // Map Placeholder
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.grey[200]!, Colors.grey[100]!],
-                ),
+            // Map Layer
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _currentLocation,
+                initialZoom: 13.0,
+                onMapReady: () {
+                  sl<MapService>().setMapController(_mapController);
+                },
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.map_outlined,
-                        size: 64,
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.taxitrack.app',
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _currentLocation,
+                      width: 80,
+                      height: 80,
+                      child: const Icon(
+                        Icons.my_location,
                         color: AppColors.primary,
+                        size: 40,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Mapbox Integration',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
+                    if (_destinationLocation != null)
+                      Marker(
+                        point: _destinationLocation!,
+                        width: 80,
+                        height: 80,
+                        child: const Icon(
+                          Icons.location_on,
+                          color: AppColors.error,
+                          size: 40,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Token required for display',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
                   ],
                 ),
-              ),
+              ],
             ),
 
             // Top Bar
@@ -376,6 +389,9 @@ class _DestinationSheet extends StatelessWidget {
                     border: Border.all(color: Colors.grey[300]!),
                   ),
                   child: TextField(
+                    onChanged: (value) {
+                      context.read<SearchBloc>().add(QueryChanged(value));
+                    },
                     decoration: InputDecoration(
                       hintText: 'Search destination',
                       hintStyle: TextStyle(color: Colors.grey[500]),
@@ -389,61 +405,73 @@ class _DestinationSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: 20, color: Colors.grey[600]),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Recent Destinations',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
               ],
             ),
           ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildDestinationTile(
-                  context,
-                  'JFK International Airport',
-                  '25 km away',
-                  Icons.flight_takeoff,
-                  40.6413,
-                  -73.7781,
-                ),
-                _buildDestinationTile(
-                  context,
-                  'Central Park',
-                  '5 km away',
-                  Icons.park,
-                  40.7829,
-                  -73.9654,
-                ),
-                _buildDestinationTile(
-                  context,
-                  'Times Square',
-                  '8 km away',
-                  Icons.location_city,
-                  40.7580,
-                  -73.9855,
-                ),
-                _buildDestinationTile(
-                  context,
-                  'Brooklyn Bridge',
-                  '12 km away',
-                  Icons.account_balance,
-                  40.7061,
-                  -73.9969,
-                ),
-              ],
+            child: BlocBuilder<SearchBloc, SearchState>(
+              builder: (context, state) {
+                if (state is SearchLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state is SearchResults) {
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: state.suggestions.length,
+                    itemBuilder: (context, index) {
+                      final suggestion = state.suggestions[index];
+                      return _buildDestinationTile(
+                        context,
+                        suggestion.label,
+                        suggestion.city,
+                        Icons.location_on,
+                        suggestion.coordinates.latitude,
+                        suggestion.coordinates.longitude,
+                      );
+                    },
+                  );
+                }
+                return ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 20,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Recent Destinations',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDestinationTile(
+                      context,
+                      'JFK International Airport',
+                      'New York, USA',
+                      Icons.flight_takeoff,
+                      40.6413,
+                      -73.7781,
+                    ),
+                    _buildDestinationTile(
+                      context,
+                      'Central Park',
+                      'New York, USA',
+                      Icons.park,
+                      40.7829,
+                      -73.9654,
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -454,7 +482,7 @@ class _DestinationSheet extends StatelessWidget {
   Widget _buildDestinationTile(
     BuildContext context,
     String name,
-    String distance,
+    String subtitle,
     IconData icon,
     double lat,
     double lng,
@@ -481,7 +509,7 @@ class _DestinationSheet extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         subtitle: Text(
-          distance,
+          subtitle,
           style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
         trailing: Icon(
@@ -490,12 +518,11 @@ class _DestinationSheet extends StatelessWidget {
           color: Colors.grey[400],
         ),
         onTap: () {
-          // Mock pickup location (current location)
           onDestinationSelected(
             'Current Location',
             name,
             40.7128,
-            -74.0060, // Mock NYC coordinates
+            -74.0060,
             lat,
             lng,
           );

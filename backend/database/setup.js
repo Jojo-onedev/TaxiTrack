@@ -6,9 +6,9 @@ const setupDatabase = async () => {
   const client = new Client({
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
-    database: 'postgres', // Base par défaut
-    user: 'postgres', // Utilisateur par défaut
-    password: 'postgres', // À adapter selon votre installation
+    database: 'postgres',
+    user: process.env.PG_USER || 'postgres',
+    password: process.env.PG_PASSWORD || 'postgres',
   });
 
   try {
@@ -44,8 +44,26 @@ const setupDatabase = async () => {
       console.log(`La base ${dbName} existe déjà`);
     }
 
-    // Donner les privilèges
+    // Donner les privilèges de base
     await client.query(`GRANT ALL PRIVILEGES ON DATABASE ${dbName} TO ${dbUser};`);
+
+    // Fermer la connexion superuser à 'postgres'
+    await client.end();
+
+    // Ouvrir une nouvelle connexion superuser directement sur la nouvelle base pour accorder les droits sur le schéma public
+    console.log(`Accès au schéma public de ${dbName} pour ${dbUser}...`);
+    const dbClient = new Client({
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5432,
+      database: dbName,
+      user: process.env.PG_USER || 'postgres',
+      password: process.env.PG_PASSWORD || 'postgres',
+    });
+
+    await dbClient.connect();
+    await dbClient.query(`GRANT ALL ON SCHEMA public TO ${dbUser};`);
+    await dbClient.query(`ALTER DATABASE ${dbName} OWNER TO ${dbUser};`);
+    await dbClient.end();
 
     console.log('\nSetup terminé avec succès !');
     console.log(`\nInformations de connexion :`);

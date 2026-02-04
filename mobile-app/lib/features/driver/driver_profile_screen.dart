@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_track/core/app_colors.dart';
+import 'package:taxi_track/features/auth/auth_bloc.dart';
+import 'package:taxi_track/features/auth/auth_bloc_impl.dart';
 import 'package:taxi_track/features/auth/login_screen.dart';
 
 class DriverProfileScreen extends StatelessWidget {
@@ -7,6 +10,18 @@ class DriverProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    if (authState is! Authenticated) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final user = authState.user;
+    final userName = '${user.firstName} ${user.lastName}';
+    final userPhone = user.phoneNumber;
+    final userEmail = user.email;
+    final userInitial = user.firstName.isNotEmpty
+        ? user.firstName[0].toUpperCase()
+        : (user.lastName.isNotEmpty ? user.lastName[0].toUpperCase() : 'D');
     return Scaffold(
       backgroundColor: AppColors.driverPrimary,
       appBar: AppBar(
@@ -36,10 +51,10 @@ class DriverProfileScreen extends StatelessWidget {
                       color: Colors.white,
                       border: Border.all(color: Colors.white, width: 4),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'M',
-                        style: TextStyle(
+                        userInitial,
+                        style: const TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -48,9 +63,9 @@ class DriverProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Marc Driver',
-                    style: TextStyle(
+                  Text(
+                    userName,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -72,7 +87,7 @@ class DriverProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        '• 247 trips',
+                        '• Experienced Driver', // Backend doesn't provide trip count yet
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white.withOpacity(0.9),
@@ -88,9 +103,13 @@ class DriverProfileScreen extends StatelessWidget {
 
             // Personal Information
             _buildSection('Personal Information', [
-              _buildInfoTile(Icons.phone, 'Phone', '+1 234 567 8900'),
-              _buildInfoTile(Icons.location_city, 'City', 'New York'),
-              _buildInfoTile(Icons.email, 'Email', 'marc.driver@taxi.com'),
+              _buildInfoTile(
+                Icons.phone,
+                'Phone',
+                userPhone.isNotEmpty ? userPhone : 'Not provided',
+              ),
+              _buildInfoTile(Icons.location_city, 'City', 'Not specified'),
+              _buildInfoTile(Icons.email, 'Email', userEmail),
             ]),
 
             const SizedBox(height: 16),
@@ -99,15 +118,14 @@ class DriverProfileScreen extends StatelessWidget {
             _buildSection('Vehicle Information', [
               _buildInfoTile(
                 Icons.directions_car,
-                'Car Model',
-                'Toyota Camry 2022',
+                'Car Details',
+                'Consult administrative panel',
               ),
               _buildInfoTile(
                 Icons.confirmation_number,
                 'Plate Number',
-                'ABC-1234',
+                'Consult administrative panel',
               ),
-              _buildInfoTile(Icons.palette, 'Color', 'Black'),
             ]),
 
             const SizedBox(height: 16),
@@ -136,6 +154,7 @@ class DriverProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: OutlinedButton(
                 onPressed: () {
+                  context.read<AuthBloc>().add(LogoutRequested());
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                     (route) => false,

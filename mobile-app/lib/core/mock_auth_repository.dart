@@ -4,13 +4,14 @@ class MockAuthRepository implements AuthRepository {
   User? _currentUser;
 
   @override
-  Future<User?> login(String phoneNumber, String password) async {
+  Future<User?> login(String email, String password) async {
     await Future.delayed(const Duration(seconds: 2)); // Simulate network lag
 
     // simple logic for demo: "driver" in password = driver
     if (password.contains("driver")) {
       _currentUser = const User(
         id: "d1",
+        email: "driver@taxitrack.com",
         firstName: "Marc",
         lastName: "Chauffeur",
         phoneNumber: "0606060606",
@@ -19,6 +20,7 @@ class MockAuthRepository implements AuthRepository {
     } else {
       _currentUser = const User(
         id: "c1",
+        email: "client@taxitrack.com",
         firstName: "Thomas",
         lastName: "Client",
         phoneNumber: "0707070707",
@@ -32,6 +34,7 @@ class MockAuthRepository implements AuthRepository {
   Future<User?> signUp({
     required String firstName,
     required String lastName,
+    required String email,
     required String phoneNumber,
     required String password,
     String? residence,
@@ -39,6 +42,7 @@ class MockAuthRepository implements AuthRepository {
     await Future.delayed(const Duration(seconds: 2));
     _currentUser = User(
       id: "c${DateTime.now().millisecondsSinceEpoch}",
+      email: email,
       firstName: firstName,
       lastName: lastName,
       phoneNumber: phoneNumber,

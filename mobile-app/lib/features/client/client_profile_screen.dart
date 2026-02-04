@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_track/core/app_colors.dart';
+import 'package:taxi_track/features/auth/auth_bloc.dart';
+import 'package:taxi_track/features/auth/auth_bloc_impl.dart';
 import 'package:taxi_track/features/auth/login_screen.dart';
 
 class ClientProfileScreen extends StatelessWidget {
@@ -7,10 +10,18 @@ class ClientProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mock user data
-    const userName = 'John Doe';
-    const userPhone = '+1 234 567 8900';
-    const userCity = 'New York, USA';
+    final authState = context.watch<AuthBloc>().state;
+    if (authState is! Authenticated) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final user = authState.user;
+    final userName = '${user.firstName} ${user.lastName}';
+    final userPhone = user.phoneNumber;
+    final userEmail = user.email;
+    final userInitial = user.firstName.isNotEmpty
+        ? user.firstName[0].toUpperCase()
+        : (user.lastName.isNotEmpty ? user.lastName[0].toUpperCase() : 'U');
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -56,10 +67,10 @@ class ClientProfileScreen extends StatelessWidget {
                       color: Colors.white,
                       border: Border.all(color: Colors.white, width: 4),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'JD',
-                        style: TextStyle(
+                        userInitial,
+                        style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -68,9 +79,9 @@ class ClientProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     userName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -91,9 +102,17 @@ class ClientProfileScreen extends StatelessWidget {
 
             // Personal Info
             _buildSection('Personal Information', [
-              _buildInfoTile(Icons.phone, 'Phone', userPhone),
-              _buildInfoTile(Icons.location_city, 'City', userCity),
-              _buildInfoTile(Icons.email, 'Email', 'john.doe@example.com'),
+              _buildInfoTile(
+                Icons.phone,
+                'Phone',
+                userPhone.isNotEmpty ? userPhone : 'Not provided',
+              ),
+              _buildInfoTile(
+                Icons.location_city,
+                'City',
+                'Not specified',
+              ), // Backend doesn't provide city yet
+              _buildInfoTile(Icons.email, 'Email', userEmail),
             ]),
             const SizedBox(height: 16),
 
@@ -118,6 +137,7 @@ class ClientProfileScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
+                  context.read<AuthBloc>().add(LogoutRequested());
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                     (route) => false,
