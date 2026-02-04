@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_track/core/app_colors.dart';
 import 'package:taxi_track/core/app_theme.dart';
+import 'package:taxi_track/core/service_locator.dart';
+import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
+import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
+import 'package:taxi_track/features/driver/incoming_ride_screen.dart';
+import 'package:taxi_track/features/driver/driver_active_ride_screen.dart';
+import 'package:taxi_track/features/driver/driver_earnings_screen.dart';
+import 'package:taxi_track/features/driver/driver_history_screen.dart';
+import 'package:taxi_track/features/driver/driver_profile_screen.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -13,42 +22,147 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   bool _isAvailable = true;
   int _selectedIndex = 0;
 
+  final List<Widget> _screens = [
+    const _DashboardTab(),
+    const DriverEarningsScreen(),
+    const DriverHistoryScreen(),
+    const Center(child: Text('Notifications')), // TODO: Implement notifications
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: AppTheme.driverTheme,
-      child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hello, Marc',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[100],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ready to hit the road?',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      ],
+    return BlocProvider(
+      create: (context) => sl<RideBlocImpl>(),
+      child: Theme(
+        data: AppTheme.driverTheme,
+        child: Scaffold(
+          body: IndexedStack(index: _selectedIndex, children: _screens),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: AppColors.driverSurface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: (index) => setState(() => _selectedIndex = index),
+              backgroundColor: AppColors.driverSurface,
+              selectedItemColor: AppColors.primary,
+              unselectedItemColor: Colors.grey[600],
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+              type: BottomNavigationBarType.fixed,
+              elevation: 0,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.dashboard_outlined),
+                  activeIcon: Icon(Icons.dashboard),
+                  label: 'Dashboard',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.attach_money_outlined),
+                  activeIcon: Icon(Icons.attach_money),
+                  label: 'Earnings',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.history_outlined),
+                  activeIcon: Icon(Icons.history),
+                  label: 'History',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.notifications_outlined),
+                  activeIcon: Icon(Icons.notifications),
+                  label: 'Alerts',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardTab extends StatefulWidget {
+  const _DashboardTab();
+
+  @override
+  State<_DashboardTab> createState() => _DashboardTabState();
+}
+
+class _DashboardTabState extends State<_DashboardTab> {
+  bool _isAvailable = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<RideBlocImpl, bloc.RideState>(
+      listener: (context, state) {
+        if (state is bloc.RideSearching && _isAvailable) {
+          // Show incoming ride request
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider.value(
+                    value: context.read<RideBlocImpl>(),
+                    child: IncomingRideScreen(ride: state.ride),
+                  ),
+                ),
+              )
+              .then((accepted) {
+                if (accepted == true) {
+                  // Navigate to active ride screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<RideBlocImpl>(),
+                        child: DriverActiveRideScreen(ride: state.ride),
+                      ),
                     ),
-                    Container(
+                  );
+                }
+              });
+        }
+      },
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hello, Marc',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[100],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Ready to hit the road?',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const DriverProfileScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: AppColors.driverSurface,
@@ -60,176 +174,143 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         color: Colors.grey[300],
                       ),
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Availability Card
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: _isAvailable
+                        ? [
+                            AppColors.primary,
+                            AppColors.primary.withOpacity(0.8),
+                          ]
+                        : [Colors.grey[800]!, Colors.grey[900]!],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (_isAvailable ? AppColors.primary : Colors.grey[900]!)
+                              .withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 32),
-
-                // Availability Card
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: _isAvailable
-                          ? [
-                              AppColors.primary,
-                              AppColors.primary.withOpacity(0.8),
-                            ]
-                          : [Colors.grey[800]!, Colors.grey[900]!],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            (_isAvailable
-                                    ? AppColors.primary
-                                    : Colors.grey[900]!)
-                                .withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _isAvailable ? 'Online' : 'Offline',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _isAvailable
-                                    ? 'Accepting rides'
-                                    : 'Not accepting rides',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white.withOpacity(0.8),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Switch(
-                            value: _isAvailable,
-                            onChanged: (value) {
-                              setState(() => _isAvailable = value);
-                            },
-                            activeColor: Colors.white,
-                            activeTrackColor: Colors.white.withOpacity(0.3),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Stats Cards
-                Text(
-                  'Today\'s Stats',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[100],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
+                child: Column(
                   children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        '12',
-                        'Rides',
-                        Icons.local_taxi,
-                        AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildStatCard(
-                        '\$245',
-                        'Earnings',
-                        Icons.attach_money,
-                        AppColors.success,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _isAvailable ? 'Online' : 'Offline',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _isAvailable
+                                  ? 'Accepting rides'
+                                  : 'Not accepting rides',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Switch(
+                          value: _isAvailable,
+                          onChanged: (value) {
+                            setState(() => _isAvailable = value);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  value
+                                      ? 'You are now online and accepting rides'
+                                      : 'You are now offline',
+                                ),
+                                backgroundColor: value
+                                    ? AppColors.success
+                                    : Colors.grey[700],
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: Colors.white.withOpacity(0.3),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        '4.8',
-                        'Rating',
-                        Icons.star,
-                        Colors.amber,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildStatCard(
-                        '6.5h',
-                        'Online',
-                        Icons.access_time,
-                        Colors.blue,
-                      ),
-                    ),
-                  ],
+              ),
+
+              const SizedBox(height: 32),
+
+              // Stats Cards
+              Text(
+                'Today\'s Stats',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[100],
                 ),
-              ],
-            ),
-          ),
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: AppColors.driverSurface,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, -5),
               ),
-            ],
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: (index) => setState(() => _selectedIndex = index),
-            backgroundColor: AppColors.driverSurface,
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: Colors.grey[600],
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-            type: BottomNavigationBarType.fixed,
-            elevation: 0,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard_outlined),
-                activeIcon: Icon(Icons.dashboard),
-                label: 'Dashboard',
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      '12',
+                      'Rides',
+                      Icons.local_taxi,
+                      AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildStatCard(
+                      '\$245',
+                      'Earnings',
+                      Icons.attach_money,
+                      AppColors.success,
+                    ),
+                  ),
+                ],
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.directions_car_outlined),
-                activeIcon: Icon(Icons.directions_car),
-                label: 'My Rides',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history_outlined),
-                activeIcon: Icon(Icons.history),
-                label: 'History',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.notifications_outlined),
-                activeIcon: Icon(Icons.notifications),
-                label: 'Alerts',
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      '4.8',
+                      'Rating',
+                      Icons.star,
+                      Colors.amber,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildStatCard(
+                      '6.5h',
+                      'Online',
+                      Icons.access_time,
+                      Colors.blue,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
