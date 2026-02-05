@@ -76,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
+                                color: AppColors.primary.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Sign in to continue your journey',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.grey.withOpacity(0.8),
+                        color: AppColors.grey.withValues(alpha: 0.8),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Expanded(
                           child: Divider(
-                            color: AppColors.grey.withOpacity(0.3),
+                            color: AppColors.grey.withValues(alpha: 0.3),
                           ),
                         ),
                         Padding(
@@ -162,14 +162,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             'OR',
                             style: TextStyle(
-                              color: AppColors.grey.withOpacity(0.6),
+                              color: AppColors.grey.withValues(alpha: 0.6),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                         Expanded(
                           child: Divider(
-                            color: AppColors.grey.withOpacity(0.3),
+                            color: AppColors.grey.withValues(alpha: 0.3),
                           ),
                         ),
                       ],
@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           "Don't have an account? ",
                           style: TextStyle(
-                            color: AppColors.grey.withOpacity(0.8),
+                            color: AppColors.grey.withValues(alpha: 0.8),
                           ),
                         ),
                         TextButton(

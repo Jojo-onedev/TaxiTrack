@@ -5,16 +5,14 @@ import 'package:latlong2/latlong.dart';
 import 'package:taxi_track/core/app_colors.dart';
 import 'package:taxi_track/core/service_locator.dart';
 import 'package:taxi_track/core/map_service.dart';
-import 'package:taxi_track/features/client/ride_history_screen.dart';
-import 'package:taxi_track/features/auth/auth_bloc.dart';
-import 'package:taxi_track/features/auth/auth_bloc_impl.dart';
-import 'package:taxi_track/features/client/search_bloc.dart';
-import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
-import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
 import 'package:taxi_track/features/client/active_ride_screen.dart';
 import 'package:taxi_track/features/client/client_profile_screen.dart';
 import 'package:taxi_track/features/client/ride_history_screen.dart';
 import 'package:taxi_track/shared/widgets/driver_info_card.dart';
+import 'package:taxi_track/shared/widgets/ride_status_overlay.dart';
+import 'package:taxi_track/features/client/search_bloc.dart';
+import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
+import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
@@ -42,7 +40,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, -5),
               ),
@@ -89,7 +87,10 @@ class _HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<_HomeTab> {
   final MapController _mapController = MapController();
-  LatLng _currentLocation = const LatLng(48.8566, 2.3522); // Paris default
+  final LatLng _currentLocation = const LatLng(
+    48.8566,
+    2.3522,
+  ); // Paris default
   LatLng? _destinationLocation;
 
   void _showDestinationSheet(BuildContext context) {
@@ -235,7 +236,7 @@ class _HomeTabState extends State<_HomeTab> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.4),
+                          color: AppColors.primary.withValues(alpha: 0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -261,7 +262,7 @@ class _HomeTabState extends State<_HomeTab> {
 
             // Searching Overlay
             if (state is bloc.RideRequesting || state is bloc.RideSearching)
-              const RideStatusOverlay(message: 'Searching for nearby drivers'),
+              RideStatusOverlay(message: 'Searching for nearby drivers'),
 
             // Driver Found Card
             if (state is bloc.RideDriverFound)
@@ -318,7 +319,7 @@ class _HomeTabState extends State<_HomeTab> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

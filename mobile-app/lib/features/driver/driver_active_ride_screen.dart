@@ -58,19 +58,6 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
     }
   }
 
-  String _getTripStateSubtitle() {
-    switch (widget.ride.status) {
-      case RideStatus.driverAccepted:
-        return 'Navigate to pickup location';
-      case RideStatus.arrived:
-        return 'Waiting for passenger';
-      case RideStatus.inProgress:
-        return 'Navigate to destination';
-      default:
-        return '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<RideBlocImpl, bloc.RideState>(
@@ -216,7 +203,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
                       children: [
                         // Client Info
                         ClientInfoCard(
-                          clientName: widget.ride.clientId ?? 'Client',
+                          clientName: widget.ride.clientId,
                           rating: 4.5,
                           onCall: () {
                             ScaffoldMessenger.of(context).showSnackBar(

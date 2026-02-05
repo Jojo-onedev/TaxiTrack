@@ -90,7 +90,7 @@ class DriverProfileScreen extends StatelessWidget {
                         '• Experienced Driver', // Backend doesn't provide trip count yet
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
@@ -227,7 +227,7 @@ class DriverProfileScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: AppColors.primary, size: 20),
@@ -266,8 +266,8 @@ class DriverProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: verified
-                  ? AppColors.success.withOpacity(0.2)
-                  : AppColors.error.withOpacity(0.2),
+                  ? AppColors.success.withValues(alpha: 0.2)
+                  : AppColors.error.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(

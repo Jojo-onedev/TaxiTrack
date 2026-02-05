@@ -21,7 +21,6 @@ class DriverHomeScreen extends StatefulWidget {
 }
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
-  bool _isAvailable = true;
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
@@ -44,7 +43,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               color: AppColors.driverSurface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 ),
@@ -116,6 +115,7 @@ class _DashboardTabState extends State<_DashboardTab> {
               )
               .then((accepted) {
                 if (accepted == true) {
+                  if (!mounted) return;
                   // Navigate to active ride screen
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -199,7 +199,7 @@ class _DashboardTabState extends State<_DashboardTab> {
                     colors: _isAvailable
                         ? [
                             AppColors.primary,
-                            AppColors.primary.withOpacity(0.8),
+                            AppColors.primary.withValues(alpha: 0.8),
                           ]
                         : [Colors.grey[800]!, Colors.grey[900]!],
                   ),
@@ -208,7 +208,7 @@ class _DashboardTabState extends State<_DashboardTab> {
                     BoxShadow(
                       color:
                           (_isAvailable ? AppColors.primary : Colors.grey[900]!)
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -237,7 +237,7 @@ class _DashboardTabState extends State<_DashboardTab> {
                                   : 'Not accepting rides',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                             ),
                           ],
@@ -261,7 +261,7 @@ class _DashboardTabState extends State<_DashboardTab> {
                             );
                           },
                           activeThumbColor: Colors.white,
-                          activeTrackColor: Colors.white.withOpacity(0.3),
+                          activeTrackColor: Colors.white.withValues(alpha: 0.3),
                         ),
                       ],
                     ),
@@ -349,7 +349,7 @@ class _DashboardTabState extends State<_DashboardTab> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 28),

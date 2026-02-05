@@ -133,8 +133,8 @@ class DriverHistoryScreen extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isCompleted
-                            ? AppColors.success.withOpacity(0.2)
-                            : AppColors.error.withOpacity(0.2),
+                            ? AppColors.success.withValues(alpha: 0.2)
+                            : AppColors.error.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

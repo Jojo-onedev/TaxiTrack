@@ -14,7 +14,7 @@ class RideStatusOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withOpacity(0.7),
+      color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 40),
@@ -24,7 +24,7 @@ class RideStatusOverlay extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
+                color: AppColors.primary.withValues(alpha: 0.3),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
               ),

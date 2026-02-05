@@ -83,7 +83,7 @@ class _IncomingRideScreenState extends State<IncomingRideScreen>
                   ),
                   decoration: BoxDecoration(
                     color: _remainingSeconds <= 10
-                        ? AppColors.error.withOpacity(0.2)
+                        ? AppColors.error.withValues(alpha: 0.2)
                         : AppColors.driverSurface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
@@ -135,10 +135,7 @@ class _IncomingRideScreenState extends State<IncomingRideScreen>
                 const SizedBox(height: 32),
 
                 // Client Info
-                ClientInfoCard(
-                  clientName: widget.ride.clientId ?? 'Client',
-                  rating: 4.5,
-                ),
+                ClientInfoCard(clientName: widget.ride.clientId, rating: 4.5),
                 const SizedBox(height: 24),
 
                 // Trip Details
@@ -263,7 +260,7 @@ class _IncomingRideScreenState extends State<IncomingRideScreen>
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 20),

@@ -106,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           'Fill in the details below to get started',
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.grey.withOpacity(0.8),
+                            color: AppColors.grey.withValues(alpha: 0.8),
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -199,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.grey.withOpacity(0.6),
+                              color: AppColors.grey.withValues(alpha: 0.6),
                             ),
                           ),
                         ),
