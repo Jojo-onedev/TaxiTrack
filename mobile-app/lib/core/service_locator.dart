@@ -9,6 +9,7 @@ import 'http_service.dart';
 import 'geocoding_service.dart';
 import 'map_service.dart';
 import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
+import 'package:taxi_track/features/client/search_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -30,4 +31,5 @@ Future<void> initServiceLocator() async {
 
   // BLoCs - Factory for new instances
   sl.registerFactory<RideBlocImpl>(() => RideBlocImpl(sl<RideRepository>()));
+  sl.registerFactory<SearchBloc>(() => SearchBloc(sl<GeocodingService>()));
 }
