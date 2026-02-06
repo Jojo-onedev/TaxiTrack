@@ -8,7 +8,9 @@
     "dev": "nodemon src/server.js",
     "db:setup": "node database/setup.js",
     "db:migrate": "node database/migrate.js",
-    "db:seed": "node database/seed.js"
+    "db:seed": "node database/seed.js",
+    "db:add-driver-online-status": "node database/add_driver_online_status.js",
+    "db:update-ride-status": "node database/update_ride_statuses.js"
   },
   "keywords": ["vtc", "taxi", "api", "express", "postgresql"],
   "author": "",
