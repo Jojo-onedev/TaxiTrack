@@ -110,8 +110,8 @@ class ClientProfileScreen extends StatelessWidget {
               _buildInfoTile(
                 Icons.location_city,
                 'City',
-                'Not specified',
-              ), // Backend doesn't provide city yet
+                user.residence.isNotEmpty ? user.residence : 'Not specified',
+              ),
               _buildInfoTile(Icons.email, 'Email', userEmail),
             ]),
             const SizedBox(height: 16),

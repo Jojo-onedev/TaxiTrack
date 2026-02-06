@@ -13,6 +13,7 @@ import 'package:taxi_track/shared/widgets/ride_status_overlay.dart';
 import 'package:taxi_track/features/client/search_bloc.dart';
 import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
 import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
+import 'package:taxi_track/core/location_service.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
@@ -87,11 +88,24 @@ class _HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<_HomeTab> {
   final MapController _mapController = MapController();
-  final LatLng _currentLocation = const LatLng(
-    48.8566,
-    2.3522,
-  ); // Paris default
+  LatLng _currentLocation = const LatLng(48.8566, 2.3522); // Paris default
   LatLng? _destinationLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    final location = await sl<LocationService>().getCurrentLocation();
+    if (location != null && mounted) {
+      setState(() {
+        _currentLocation = location;
+      });
+      _mapController.move(location, 14.0);
+    }
+  }
 
   void _showDestinationSheet(BuildContext context) {
     showModalBottomSheet(
@@ -101,6 +115,7 @@ class _HomeTabState extends State<_HomeTab> {
       builder: (sheetContext) => BlocProvider(
         create: (context) => sl<SearchBloc>(),
         child: _DestinationSheet(
+          currentLocation: _currentLocation,
           onDestinationSelected:
               (pickup, destination, pickupLat, pickupLng, destLat, destLng) {
                 Navigator.pop(sheetContext);
@@ -214,6 +229,13 @@ class _HomeTabState extends State<_HomeTab> {
                   ],
                 ),
               ),
+            ),
+
+            // My Location Button
+            Positioned(
+              bottom: 180,
+              right: 16,
+              child: _buildTopButton(Icons.my_location, _getCurrentLocation),
             ),
 
             // Destination Search Button (only show when no active ride)
@@ -341,6 +363,7 @@ class _HomeTabState extends State<_HomeTab> {
 }
 
 class _DestinationSheet extends StatelessWidget {
+  final LatLng currentLocation;
   final Function(
     String pickup,
     String destination,
@@ -351,7 +374,10 @@ class _DestinationSheet extends StatelessWidget {
   )
   onDestinationSelected;
 
-  const _DestinationSheet({required this.onDestinationSelected});
+  const _DestinationSheet({
+    required this.currentLocation,
+    required this.onDestinationSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -522,8 +548,8 @@ class _DestinationSheet extends StatelessWidget {
           onDestinationSelected(
             'Current Location',
             name,
-            40.7128,
-            -74.0060,
+            currentLocation.latitude,
+            currentLocation.longitude,
             lat,
             lng,
           );

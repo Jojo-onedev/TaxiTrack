@@ -108,7 +108,11 @@ class DriverProfileScreen extends StatelessWidget {
                 'Phone',
                 userPhone.isNotEmpty ? userPhone : 'Not provided',
               ),
-              _buildInfoTile(Icons.location_city, 'City', 'Not specified'),
+              _buildInfoTile(
+                Icons.location_city,
+                'City',
+                user.residence.isNotEmpty ? user.residence : 'Not specified',
+              ),
               _buildInfoTile(Icons.email, 'Email', userEmail),
             ]),
 

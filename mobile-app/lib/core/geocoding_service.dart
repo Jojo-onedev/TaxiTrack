@@ -30,11 +30,15 @@ class GeocodingService {
   static const String _baseUrl = 'https://photon.komoot.io/api';
 
   Future<List<SearchSuggestion>> search(String query) async {
-    if (query.length < 3) return [];
+    if (query.length < 2) return [];
 
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/?q=${Uri.encodeComponent(query)}&limit=5'),
+        headers: {
+          'User-Agent': 'TaxiTrackApp/1.0 (contact: test@taxitrack.com)',
+          'Accept': 'application/json',
+        },
       );
 
       if (response.statusCode == 200) {
@@ -42,6 +46,7 @@ class GeocodingService {
         final features = data['features'] as List;
         return features.map((f) => SearchSuggestion.fromJson(f)).toList();
       }
+      print('Geocoding response: ${response.statusCode}');
       return [];
     } catch (e) {
       print('Geocoding error: $e');

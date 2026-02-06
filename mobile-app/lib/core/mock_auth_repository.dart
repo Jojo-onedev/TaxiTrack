@@ -15,6 +15,7 @@ class MockAuthRepository implements AuthRepository {
         firstName: "Marc",
         lastName: "Chauffeur",
         phoneNumber: "0606060606",
+        residence: "Ouagadougou",
         role: UserRole.driver,
       );
     } else {
@@ -24,6 +25,7 @@ class MockAuthRepository implements AuthRepository {
         firstName: "Thomas",
         lastName: "Client",
         phoneNumber: "0707070707",
+        residence: "Ouagadougou",
         role: UserRole.client,
       );
     }
@@ -46,6 +48,7 @@ class MockAuthRepository implements AuthRepository {
       firstName: firstName,
       lastName: lastName,
       phoneNumber: phoneNumber,
+      residence: residence ?? "Ouagadougou",
       role: UserRole.client,
     );
     return _currentUser;

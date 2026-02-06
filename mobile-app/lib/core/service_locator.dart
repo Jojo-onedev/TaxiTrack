@@ -8,6 +8,7 @@ import 'token_service.dart';
 import 'http_service.dart';
 import 'geocoding_service.dart';
 import 'map_service.dart';
+import 'location_service.dart';
 import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
 import 'package:taxi_track/features/client/search_bloc.dart';
 
@@ -24,6 +25,7 @@ Future<void> initServiceLocator() async {
   sl.registerLazySingleton<HttpService>(() => HttpService(sl()));
   sl.registerLazySingleton<GeocodingService>(() => GeocodingService());
   sl.registerLazySingleton<MapService>(() => MapService());
+  sl.registerLazySingleton<LocationService>(() => LocationService());
 
   // Repositories
   sl.registerLazySingleton<AuthRepository>(() => ApiAuthRepository(sl(), sl()));

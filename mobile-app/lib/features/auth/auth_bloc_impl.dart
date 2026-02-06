@@ -56,7 +56,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         residence: event.residence,
       );
       if (user != null) {
-        emit(Authenticated(user));
+        // Refresh to get full profile (residence, phone) missing in signup response
+        final fullUser = await _authRepository.getCurrentUser();
+        emit(Authenticated(fullUser ?? user));
       } else {
         emit(const AuthFailure('Erreur lors de l\'inscription'));
       }

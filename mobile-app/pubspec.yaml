@@ -45,6 +45,7 @@ dependencies:
   flutter_map: ^7.0.0
   latlong2: ^0.9.1
   http: ^1.1.0
+  geolocator: ^14.0.2
   # mapbox_maps_flutter: ^1.0.0  # Disabled in favor of OpenStreetMap
 
 dev_dependencies:

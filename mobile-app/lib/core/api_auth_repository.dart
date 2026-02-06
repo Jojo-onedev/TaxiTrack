@@ -105,6 +105,7 @@ class ApiAuthRepository implements AuthRepository {
       firstName: data['prenom'] ?? '',
       lastName: data['nom'] ?? '',
       phoneNumber: data['telephone'] ?? '',
+      residence: data['lieu_residence'] ?? '',
       role: data['role'] == 'driver' ? UserRole.driver : UserRole.client,
     );
   }
