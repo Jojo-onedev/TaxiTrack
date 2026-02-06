@@ -47,12 +47,14 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Import des routes
+/// Import des routes
 const clientRoutes = require('./routes/clientRoutes');
+const driverRoutes = require('./routes/driverRoutes');
 
 // Routes de l'API
 app.use('/api/auth', authRoutes);
 app.use('/api/client', clientRoutes);
+app.use('/api/driver', driverRoutes);
 
 // Gestion des routes non trouvées
 app.use('*', (req, res) => {
