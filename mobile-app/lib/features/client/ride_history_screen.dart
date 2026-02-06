@@ -20,7 +20,7 @@ class RideHistoryScreen extends StatelessWidget {
       destinationLng: -73.7781,
       status: RideStatus.completed,
       estimatedPrice: 45.50,
-      requestedAt: DateTime.now().subtract(const Duration(days: 2)),
+      createdAt: DateTime.now().subtract(const Duration(days: 2)),
     ),
     Ride(
       id: '2',
@@ -35,7 +35,7 @@ class RideHistoryScreen extends StatelessWidget {
       destinationLng: -73.9969,
       status: RideStatus.completed,
       estimatedPrice: 28.00,
-      requestedAt: DateTime.now().subtract(const Duration(days: 5)),
+      createdAt: DateTime.now().subtract(const Duration(days: 5)),
     ),
     Ride(
       id: '3',
@@ -50,7 +50,7 @@ class RideHistoryScreen extends StatelessWidget {
       destinationLng: -73.9857,
       status: RideStatus.completed,
       estimatedPrice: 15.75,
-      requestedAt: DateTime.now().subtract(const Duration(days: 7)),
+      createdAt: DateTime.now().subtract(const Duration(days: 7)),
     ),
     Ride(
       id: '4',
@@ -65,7 +65,7 @@ class RideHistoryScreen extends StatelessWidget {
       destinationLng: -73.9712,
       status: RideStatus.cancelled,
       estimatedPrice: 35.00,
-      requestedAt: DateTime.now().subtract(const Duration(days: 10)),
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
     ),
   ];
 
@@ -158,7 +158,7 @@ class RideHistoryScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _formatDate(ride.requestedAt!),
+                      _formatDate(ride.createdAt!),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -333,7 +333,7 @@ class RideHistoryScreen extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            _buildDetailRow('Date', _formatDate(ride.requestedAt!)),
+            _buildDetailRow('Date', _formatDate(ride.createdAt!)),
             _buildDetailRow('Driver', ride.driverName!),
             _buildDetailRow('From', ride.pickupAddress),
             _buildDetailRow('To', ride.destinationAddress),

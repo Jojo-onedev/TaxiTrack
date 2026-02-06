@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_track/core/ride_repository.dart';
+import 'package:taxi_track/features/auth/auth_bloc.dart';
+import 'package:taxi_track/features/auth/auth_bloc_impl.dart' as impl;
 import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
 
 class RideBlocImpl extends Bloc<bloc.RideEvent, bloc.RideState> {
   final RideRepository _rideRepository;
+  final impl.AuthBloc _authBloc;
   StreamSubscription? _rideUpdateSubscription;
 
-  RideBlocImpl(this._rideRepository) : super(bloc.RideInitial()) {
+  RideBlocImpl(this._rideRepository, this._authBloc)
+    : super(bloc.RideInitial()) {
     on<bloc.RequestRide>(_onRequestRide);
     on<bloc.CancelRide>(_onCancelRide);
     on<bloc.ConfirmDriver>(_onConfirmDriver);
@@ -20,17 +24,25 @@ class RideBlocImpl extends Bloc<bloc.RideEvent, bloc.RideState> {
     bloc.RequestRide event,
     Emitter<bloc.RideState> emit,
   ) async {
+    final authState = _authBloc.state;
+    if (authState is! Authenticated) {
+      emit(const bloc.RideError('Utilisateur non authentifié'));
+      return;
+    }
+
+    final clientId = authState.user.id;
+
     emit(bloc.RideRequesting());
     try {
       final ride = Ride(
-        clientId: 'mock_client_001',
+        clientId: clientId,
         pickupAddress: event.pickupAddress,
         destinationAddress: event.destinationAddress,
         pickupLat: event.pickupLat,
         pickupLng: event.pickupLng,
         destinationLat: event.destinationLat,
         destinationLng: event.destinationLng,
-        status: RideStatus.searching,
+        status: RideStatus.pending,
       );
 
       final createdRide = await _rideRepository.requestRide(ride);
@@ -66,7 +78,7 @@ class RideBlocImpl extends Bloc<bloc.RideEvent, bloc.RideState> {
     try {
       final ride = await _rideRepository.getRideById(event.rideId);
       if (ride != null) {
-        final confirmedRide = ride.copyWith(status: RideStatus.clientConfirmed);
+        final confirmedRide = ride.copyWith(status: RideStatus.accepted);
         emit(bloc.RideConfirmed(confirmedRide));
       }
     } catch (e) {
@@ -114,7 +126,7 @@ class RideBlocImpl extends Bloc<bloc.RideEvent, bloc.RideState> {
         .watchRideUpdates(event.rideId)
         .listen(
           (ride) {
-            if (ride.status == RideStatus.driverAccepted) {
+            if (ride.status == RideStatus.accepted) {
               emit(bloc.RideDriverFound(ride));
             } else if (ride.status == RideStatus.arrived) {
               emit(bloc.RideConfirmed(ride));

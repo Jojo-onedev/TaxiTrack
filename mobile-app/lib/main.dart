@@ -19,8 +19,7 @@ class TaxiTrackApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          AuthBloc(sl<AuthRepository>())..add(AuthCheckRequested()),
+      create: (context) => sl<AuthBloc>()..add(AuthCheckRequested()),
       child: MaterialApp(
         title: 'TaxiTrack',
         debugShowCheckedModeBanner: false,

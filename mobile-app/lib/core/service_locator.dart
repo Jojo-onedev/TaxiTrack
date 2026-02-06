@@ -3,7 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth_repository.dart';
 import 'api_auth_repository.dart';
 import 'ride_repository.dart';
-import 'mock_ride_repository.dart';
+import 'package:taxi_track/features/auth/auth_bloc_impl.dart';
+import 'api_ride_repository.dart';
 import 'token_service.dart';
 import 'http_service.dart';
 import 'geocoding_service.dart';
@@ -29,9 +30,12 @@ Future<void> initServiceLocator() async {
 
   // Repositories
   sl.registerLazySingleton<AuthRepository>(() => ApiAuthRepository(sl(), sl()));
-  sl.registerLazySingleton<RideRepository>(() => MockRideRepository());
+  sl.registerLazySingleton<RideRepository>(() => ApiRideRepository(sl()));
 
   // BLoCs - Factory for new instances
-  sl.registerFactory<RideBlocImpl>(() => RideBlocImpl(sl<RideRepository>()));
+  sl.registerLazySingleton<AuthBloc>(() => AuthBloc(sl<AuthRepository>()));
+  sl.registerFactory<RideBlocImpl>(
+    () => RideBlocImpl(sl<RideRepository>(), sl<AuthBloc>()),
+  );
   sl.registerFactory<SearchBloc>(() => SearchBloc(sl<GeocodingService>()));
 }

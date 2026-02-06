@@ -1,20 +1,22 @@
 import 'package:equatable/equatable.dart';
 
 enum RideStatus {
-  idle,
-  searching,
-  driverAccepted,
-  clientConfirmed,
+  pending,
+  accepted,
   arrived,
   inProgress,
   completed,
   cancelled,
+  unknown,
 }
 
 class Ride extends Equatable {
   final String? id;
   final String? driverId;
   final String? driverName;
+  final String? driverPhone;
+  final String? carModel;
+  final String? carPlate;
   final String clientId;
   final String pickupAddress;
   final String destinationAddress;
@@ -24,12 +26,15 @@ class Ride extends Equatable {
   final double destinationLng;
   final RideStatus status;
   final double? estimatedPrice;
-  final DateTime? requestedAt;
+  final DateTime? createdAt;
 
   const Ride({
     this.id,
     this.driverId,
     this.driverName,
+    this.driverPhone,
+    this.carModel,
+    this.carPlate,
     required this.clientId,
     required this.pickupAddress,
     required this.destinationAddress,
@@ -39,13 +44,82 @@ class Ride extends Equatable {
     required this.destinationLng,
     required this.status,
     this.estimatedPrice,
-    this.requestedAt,
+    this.createdAt,
   });
+
+  factory Ride.fromJson(Map<String, dynamic> json) {
+    // Handling nested structure from clientController.js output
+    // data: { ride: { ... } } or just { ... }
+    final rideData = json['ride'] ?? json;
+
+    final pickup = rideData['pickup'] ?? {};
+    final dest = rideData['destination'] ?? {};
+    final driver = rideData['driver'];
+
+    return Ride(
+      id: rideData['id']?.toString(),
+      clientId: rideData['client_id']?.toString() ?? '',
+      pickupAddress: pickup['address'] ?? rideData['depart_address'] ?? '',
+      pickupLat: (pickup['lat'] ?? rideData['depart_lat'] ?? 0.0).toDouble(),
+      pickupLng: (pickup['long'] ?? rideData['depart_long'] ?? 0.0).toDouble(),
+      destinationAddress: dest['address'] ?? rideData['dest_address'] ?? '',
+      destinationLat: (dest['lat'] ?? rideData['dest_lat'] ?? 0.0).toDouble(),
+      destinationLng: (dest['long'] ?? rideData['dest_long'] ?? 0.0).toDouble(),
+      status: _parseStatus(rideData['status']),
+      estimatedPrice: (rideData['estimated_price'] ?? rideData['prix'] ?? 0.0)
+          .toDouble(),
+      createdAt: rideData['created_at'] != null
+          ? DateTime.parse(rideData['created_at'])
+          : null,
+      driverId: rideData['driver_id']?.toString(),
+      driverName: driver != null ? driver['name'] : null,
+      driverPhone: driver != null ? driver['phone'] : null,
+      carModel: (driver != null && driver['car'] != null)
+          ? driver['car']['model']
+          : null,
+      carPlate: (driver != null && driver['car'] != null)
+          ? driver['car']['plate']
+          : null,
+    );
+  }
+
+  static RideStatus _parseStatus(String? status) {
+    switch (status) {
+      case 'pending':
+        return RideStatus.pending;
+      case 'accepted':
+        return RideStatus.accepted;
+      case 'arrived':
+        return RideStatus.arrived;
+      case 'in_progress':
+        return RideStatus.inProgress;
+      case 'completed':
+        return RideStatus.completed;
+      case 'cancelled':
+        return RideStatus.cancelled;
+      default:
+        return RideStatus.unknown;
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pickup_address': pickupAddress,
+      'pickup_lat': pickupLat,
+      'pickup_long': pickupLng,
+      'dest_address': destinationAddress,
+      'dest_lat': destinationLat,
+      'dest_long': destinationLng,
+    };
+  }
 
   Ride copyWith({
     String? id,
     String? driverId,
     String? driverName,
+    String? driverPhone,
+    String? carModel,
+    String? carPlate,
     String? clientId,
     String? pickupAddress,
     String? destinationAddress,
@@ -55,12 +129,15 @@ class Ride extends Equatable {
     double? destinationLng,
     RideStatus? status,
     double? estimatedPrice,
-    DateTime? requestedAt,
+    DateTime? createdAt,
   }) {
     return Ride(
       id: id ?? this.id,
       driverId: driverId ?? this.driverId,
       driverName: driverName ?? this.driverName,
+      driverPhone: driverPhone ?? this.driverPhone,
+      carModel: carModel ?? this.carModel,
+      carPlate: carPlate ?? this.carPlate,
       clientId: clientId ?? this.clientId,
       pickupAddress: pickupAddress ?? this.pickupAddress,
       destinationAddress: destinationAddress ?? this.destinationAddress,
@@ -70,7 +147,7 @@ class Ride extends Equatable {
       destinationLng: destinationLng ?? this.destinationLng,
       status: status ?? this.status,
       estimatedPrice: estimatedPrice ?? this.estimatedPrice,
-      requestedAt: requestedAt ?? this.requestedAt,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -79,6 +156,9 @@ class Ride extends Equatable {
     id,
     driverId,
     driverName,
+    driverPhone,
+    carModel,
+    carPlate,
     clientId,
     pickupAddress,
     destinationAddress,
@@ -88,7 +168,7 @@ class Ride extends Equatable {
     destinationLng,
     status,
     estimatedPrice,
-    requestedAt,
+    createdAt,
   ];
 }
 

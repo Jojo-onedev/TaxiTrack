@@ -47,7 +47,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
 
   String _getTripStateTitle() {
     switch (widget.ride.status) {
-      case RideStatus.driverAccepted:
+      case RideStatus.accepted:
         return 'Going to Pickup';
       case RideStatus.arrived:
         return 'Arrived at Pickup';
@@ -322,7 +322,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
 
   Widget _buildActionButtons() {
     switch (widget.ride.status) {
-      case RideStatus.driverAccepted:
+      case RideStatus.accepted:
         return AppButton(
           text: 'I\'ve Arrived',
           onPressed: () {

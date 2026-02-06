@@ -11,8 +11,8 @@ class MockRideRepository implements RideRepository {
 
     final rideWithId = ride.copyWith(
       id: 'ride_${DateTime.now().millisecondsSinceEpoch}',
-      status: RideStatus.searching,
-      requestedAt: DateTime.now(),
+      status: RideStatus.pending,
+      createdAt: DateTime.now(),
       estimatedPrice: 25.0 + (ride.pickupLat - ride.destinationLat).abs() * 10,
     );
 
@@ -27,7 +27,7 @@ class MockRideRepository implements RideRepository {
   void _simulateDriverAcceptance(Ride ride) {
     Future.delayed(const Duration(seconds: 5), () {
       final updatedRide = ride.copyWith(
-        status: RideStatus.driverAccepted,
+        status: RideStatus.accepted,
         driverId: 'driver_001',
         driverName: 'Marc Chauffeur',
       );
