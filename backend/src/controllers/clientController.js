@@ -4,11 +4,20 @@ const pool = require('../config/database');
  * POST /api/client/rides/request
  * Créer une nouvelle demande de course
  */
+
 const requestRide = async (req, res, next) => {
   const client = await pool.connect();
   
   try {
-    const clientId = req.user.id; // Récupéré depuis le token JWT
+    const clientId = req.user.id;
+
+    // Récupérer le profil du client pour les notifications
+    const profileResult = await pool.query(
+      'SELECT nom, prenom FROM client_profiles WHERE user_id = $1',
+      [clientId]
+    );
+    const profile = profileResult.rows[0];
+
     const { 
       pickup_address, 
       pickup_lat, 
@@ -33,7 +42,7 @@ const requestRide = async (req, res, next) => {
       });
     }
 
-    // Calculer le prix estimé (formule simple : 500 FCFA de base + 200 FCFA/km)
+    // Calculer le prix estimé
     const distance = calculateDistance(pickup_lat, pickup_long, dest_lat, dest_long);
     const estimatedPrice = 500 + (distance * 200);
 
@@ -57,8 +66,28 @@ const requestRide = async (req, res, next) => {
 
     const ride = result.rows[0];
 
-    // TODO: Émettre un événement Socket.io pour notifier les chauffeurs disponibles
-    // io.to('drivers').emit('new_ride_request', ride);
+    // Notifier tous les chauffeurs en ligne via Socket.io
+    if (req.io) {
+      req.io.to('drivers').emit('new_ride_request', {
+        ride_id: ride.id,
+        client: {
+          name: `${profile?.prenom || 'Client'} ${profile?.nom || ''}`.trim()
+        },
+        pickup: {
+          address: ride.depart_address,
+          lat: parseFloat(ride.depart_lat),
+          long: parseFloat(ride.depart_long)
+        },
+        destination: {
+          address: ride.dest_address,
+          lat: parseFloat(ride.dest_lat),
+          long: parseFloat(ride.dest_long)
+        },
+        price: parseFloat(ride.prix),
+        created_at: ride.created_at
+      });
+      console.log(`Notification envoyée aux chauffeurs pour la course ${ride.id}`);
+    }
 
     res.status(201).json({
       success: true,
@@ -310,9 +339,87 @@ function toRad(degrees) {
   return degrees * (Math.PI / 180);
 }
 
+/**
+ * POST /api/client/rides/:id/cancel
+ * Annuler une course
+ */
+const cancelRide = async (req, res, next) => {
+  try {
+    const clientId = req.user.id;
+    const rideId = req.params.id;
+
+    // Vérifier que la course appartient au client
+    const rideCheck = await pool.query(
+      `SELECT id, status FROM rides 
+       WHERE id = $1 AND client_id = $2`,
+      [rideId, clientId]
+    );
+
+    if (rideCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course non trouvée'
+      });
+    }
+
+    const ride = rideCheck.rows[0];
+
+    // Vérifier que la course peut être annulée (seulement pending ou accepted)
+    if (!['pending', 'accepted'].includes(ride.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cette course ne peut plus être annulée (trajet déjà commencé ou terminé)'
+      });
+    }
+
+    // Annuler la course
+    await pool.query(
+      `UPDATE rides 
+       SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [rideId]
+    );
+
+    // Notifier tous les chauffeurs en ligne via Socket.io
+const io = req.io;
+io.to('drivers').emit('new_ride_request', {
+  ride_id: ride.id,
+  client: {
+    name: `${profile?.prenom || 'Client'} ${profile?.nom || ''}`.trim()
+  },
+  pickup: {
+    address: ride.depart_address,
+    lat: parseFloat(ride.depart_lat),
+    long: parseFloat(ride.depart_long)
+  },
+  destination: {
+    address: ride.dest_address,
+    lat: parseFloat(ride.dest_lat),
+    long: parseFloat(ride.dest_long)
+  },
+  price: parseFloat(ride.prix),
+  created_at: ride.created_at
+});
+console.log(`Notification envoyée aux chauffeurs pour la course ${ride.id}`);
+
+    res.json({
+      success: true,
+      message: 'Course annulée avec succès',
+      data: {
+        ride_id: parseInt(rideId),
+        status: 'cancelled'
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   requestRide,
   getActiveRide,
   getRideHistory,
-  rateRide
+  rateRide,
+  cancelRide
 };

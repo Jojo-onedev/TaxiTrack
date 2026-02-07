@@ -217,8 +217,61 @@ const getMe = async (req, res, next) => {
   }
 };
 
+/**
+ * PATCH /api/auth/profile
+ * Mettre à jour les informations de profil
+ */
+const updateProfile = async (req, res, next) => {
+  const client = await pool.connect();
+  
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const { nom, prenom, telephone, lieu_residence } = req.body;
+
+    await client.query('BEGIN');
+
+    // Mettre à jour selon le rôle
+    if (userRole === 'client') {
+      await client.query(
+        `UPDATE client_profiles 
+         SET nom = $1, prenom = $2, telephone = $3, lieu_residence = $4, updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = $5`,
+        [nom, prenom, telephone, lieu_residence, userId]
+      );
+    } else if (userRole === 'driver') {
+      await client.query(
+        `UPDATE driver_profiles 
+         SET nom = $1, prenom = $2, telephone = $3, lieu_residence = $4, updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = $5`,
+        [nom, prenom, telephone, lieu_residence, userId]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: 'Profil mis à jour avec succès',
+      data: {
+        nom,
+        prenom,
+        telephone,
+        lieu_residence
+      }
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    next(error);
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   registerClient,
   login,
-  getMe
+  getMe,
+  updateProfile
 };

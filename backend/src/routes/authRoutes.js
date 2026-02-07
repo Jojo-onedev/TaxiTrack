@@ -1,8 +1,10 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { registerClient, login, getMe } = require('../controllers/authController');
+const { registerClient, login, getMe, updateProfile } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const { handleValidationErrors } = require('../middleware/errorHandler');
+
+
 
 const router = express.Router();
 
@@ -67,5 +69,37 @@ router.post(
  * @access  Private
  */
 router.get('/me', authenticate, getMe);
+
+/**
+ * @route   PATCH /api/auth/profile
+ * @desc    Mettre à jour le profil utilisateur
+ * @access  Private
+ */
+router.patch(
+  '/profile',
+  authenticate,
+  [
+    body('nom')
+      .optional()
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage('Le nom doit contenir au moins 2 caractères'),
+    body('prenom')
+      .optional()
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage('Le prénom doit contenir au moins 2 caractères'),
+    body('telephone')
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage('Le téléphone ne peut pas être vide'),
+    body('lieu_residence')
+      .optional()
+      .trim(),
+    handleValidationErrors
+  ],
+  updateProfile
+);
 
 module.exports = router;
