@@ -155,8 +155,34 @@ const acceptRide = async (req, res, next) => {
 
     const ride = result.rows[0];
 
-    // TODO: Émettre un événement Socket.io pour notifier le client
-    // io.to(`client_${ride.client_id}`).emit('ride_accepted', { driver: {...} });
+    // Récupérer les infos du chauffeur pour la notification
+const driverInfo = await pool.query(
+  `SELECT dp.nom, dp.prenom, dp.telephone, 
+          c.nom_modele, c.plaque_immatriculation
+   FROM driver_profiles dp
+   LEFT JOIN cars c ON dp.car_id = c.id
+   WHERE dp.user_id = $1`,
+  [driverId]
+);
+
+const driver = driverInfo.rows[0];
+
+// Notifier le client via Socket.io
+const io = req.io;
+io.to(`user_${ride.client_id}`).emit('ride_accepted', {
+  ride_id: ride.id,
+  driver: {
+    name: `${driver.prenom} ${driver.nom}`,
+    phone: driver.telephone,
+    car: {
+      model: driver.nom_modele,
+      plate: driver.plaque_immatriculation
+    }
+  },
+  message: 'Un chauffeur a accepté votre course !'
+});
+
+console.log(`📢 Client ${ride.client_id} notifié : chauffeur accepté`);
 
     res.json({
       success: true,
@@ -235,8 +261,22 @@ const updateRideStatus = async (req, res, next) => {
     const result = await pool.query(updateQuery, [status, rideId]);
     const ride = result.rows[0];
 
-    // TODO: Émettre un événement Socket.io pour notifier le client
-    // io.to(`client_${ride.client_id}`).emit('status_changed', { status });
+    // Notifier le client du changement de statut
+const io = req.io;
+const messages = {
+  'arrived': 'Votre chauffeur est arrivé au point de départ !',
+  'in_progress': 'Votre trajet a commencé',
+  'completed': 'Votre trajet est terminé. Merci d\'avoir utilisé TaxiTrack !'
+};
+
+io.to(`user_${ride.client_id}`).emit('status_changed', {
+  ride_id: ride.id,
+  status: status,
+  message: messages[status] || 'Statut de la course mis à jour',
+  updated_at: ride.updated_at
+});
+
+console.log(`📢 Client ${ride.client_id} notifié : statut ${status}`);
 
     res.json({
       success: true,

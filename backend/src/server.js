@@ -1,14 +1,29 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
 const { errorHandler } = require('./middleware/errorHandler');
+const { initializeSocket } = require('./config/socket');
+
+// Import des routes
 const authRoutes = require('./routes/authRoutes');
+const clientRoutes = require('./routes/clientRoutes');
+const driverRoutes = require('./routes/driverRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Créer le serveur HTTP
+const server = http.createServer(app);
+
+// Initialiser Socket.io
+const io = initializeSocket(server);
+
+// Rendre io accessible dans toute l'application
+app.set('io', io);
 
 // Middlewares de sécurité et configuration
 app.use(helmet());
@@ -16,40 +31,45 @@ app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
   credentials: true
 }));
-app.use(morgan('dev')); // Logs des requêtes
-app.use(express.json()); // Parse le JSON
+app.use(morgan('dev'));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Route de base (pour tester que le serveur fonctionne)
+// Middleware pour passer io aux routes
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Route de base
 app.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'Bienvenue sur l\'API TaxiTrack',
     version: '1.0.0',
+    features: {
+      rest_api: true,
+      websocket: true,
+      realtime_notifications: true
+    },
     endpoints: {
       auth: '/api/auth',
-      drivers: '/api/drivers (à venir)',
-      clients: '/api/clients (à venir)',
-      cars: '/api/cars (à venir)',
-      rides: '/api/rides (à venir)',
-      maintenance: '/api/maintenance (à venir)',
-      stats: '/api/stats (à venir)'
+      client: '/api/client',
+      driver: '/api/driver',
+      admin: '/api/admin (à venir)'
     }
   });
 });
 
-// Route de santé (health check)
+// Route de santé
 app.get('/health', (req, res) => {
   res.json({
     success: true,
     message: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    websocket: 'active'
   });
 });
-
-/// Import des routes
-const clientRoutes = require('./routes/clientRoutes');
-const driverRoutes = require('./routes/driverRoutes');
 
 // Routes de l'API
 app.use('/api/auth', authRoutes);
@@ -64,15 +84,16 @@ app.use('*', (req, res) => {
   });
 });
 
-// Middleware de gestion des erreurs (doit être en dernier)
+// Middleware de gestion des erreurs
 app.use(errorHandler);
 
-// Démarrage du serveur
-app.listen(PORT, () => {
+// Démarrage du serveur (avec Socket.io)
+server.listen(PORT, () => {
   console.log('================================');
   console.log(`Serveur démarré sur le port ${PORT}`);
   console.log(`URL: http://localhost:${PORT}`);
   console.log(`Environnement: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`WebSocket: Actif`);
   console.log('================================');
 });
 

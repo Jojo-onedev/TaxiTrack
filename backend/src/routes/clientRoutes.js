@@ -4,7 +4,8 @@ const {
   requestRide,
   getActiveRide,
   getRideHistory,
-  rateRide
+  rateRide,
+  cancelRide
 } = require('../controllers/clientController');
 const { authenticate, authorize } = require('../middleware/auth');
 const { handleValidationErrors } = require('../middleware/errorHandler');
@@ -98,6 +99,22 @@ router.post(
     handleValidationErrors
   ],
   rateRide
+);
+
+/**
+ * @route   POST /api/client/rides/:id/cancel
+ * @desc    Annuler une course
+ * @access  Client only
+ */
+router.post(
+  '/rides/:id/cancel',
+  [
+    param('id')
+      .isInt()
+      .withMessage('ID de course invalide'),
+    handleValidationErrors
+  ],
+  cancelRide
 );
 
 module.exports = router;
