@@ -95,12 +95,15 @@ class _DashboardTab extends StatefulWidget {
 
 class _DashboardTabState extends State<_DashboardTab> {
   @override
+  void initState() {
+    super.initState();
+    context.read<DriverBlocImpl>().add(driver_bloc.LoadDriverStats());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<DriverBlocImpl, driver_bloc.DriverState>(
       listener: (context, state) {
-        if (state is driver_bloc.DriverInitial) {
-          context.read<DriverBlocImpl>().add(driver_bloc.LoadDriverStats());
-        }
         if (state is driver_bloc.NewRideRequestState) {
           Navigator.of(context)
               .push(
