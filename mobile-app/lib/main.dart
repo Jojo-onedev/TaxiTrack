@@ -5,6 +5,7 @@ import 'core/service_locator.dart';
 import 'features/auth/auth_bloc.dart';
 import 'features/auth/auth_bloc_impl.dart';
 import 'features/auth/splash_screen.dart';
+import 'features/driver/driver_bloc_impl.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +18,13 @@ class TaxiTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<AuthBloc>()..add(AuthCheckRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (context) => sl<AuthBloc>()..add(AuthCheckRequested()),
+        ),
+        BlocProvider<DriverBlocImpl>(create: (context) => sl<DriverBlocImpl>()),
+      ],
       child: MaterialApp(
         title: 'TaxiTrack',
         debugShowCheckedModeBanner: false,

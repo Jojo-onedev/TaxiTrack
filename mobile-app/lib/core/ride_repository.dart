@@ -18,6 +18,8 @@ class Ride extends Equatable {
   final String? carModel;
   final String? carPlate;
   final String clientId;
+  final String? clientName;
+  final String? clientPhone;
   final String pickupAddress;
   final String destinationAddress;
   final double pickupLat;
@@ -36,6 +38,8 @@ class Ride extends Equatable {
     this.carModel,
     this.carPlate,
     required this.clientId,
+    this.clientName,
+    this.clientPhone,
     required this.pickupAddress,
     required this.destinationAddress,
     required this.pickupLat,
@@ -55,10 +59,17 @@ class Ride extends Equatable {
     final pickup = rideData['pickup'] ?? {};
     final dest = rideData['destination'] ?? {};
     final driver = rideData['driver'];
+    final client = rideData['client'];
 
     return Ride(
-      id: rideData['id']?.toString(),
-      clientId: rideData['client_id']?.toString() ?? '',
+      id: (rideData['id'] ?? rideData['_id'] ?? rideData['ride_id'])
+          ?.toString(),
+      clientId:
+          rideData['client_id']?.toString() ??
+          rideData['user_id']?.toString() ??
+          '',
+      clientName: client != null ? client['name'] : rideData['client_name'],
+      clientPhone: client != null ? client['phone'] : rideData['client_phone'],
       pickupAddress: pickup['address'] ?? rideData['depart_address'] ?? '',
       pickupLat: (pickup['lat'] ?? rideData['depart_lat'] ?? 0.0).toDouble(),
       pickupLng: (pickup['long'] ?? rideData['depart_long'] ?? 0.0).toDouble(),
@@ -66,8 +77,12 @@ class Ride extends Equatable {
       destinationLat: (dest['lat'] ?? rideData['dest_lat'] ?? 0.0).toDouble(),
       destinationLng: (dest['long'] ?? rideData['dest_long'] ?? 0.0).toDouble(),
       status: _parseStatus(rideData['status']),
-      estimatedPrice: (rideData['estimated_price'] ?? rideData['prix'] ?? 0.0)
-          .toDouble(),
+      estimatedPrice:
+          (rideData['estimated_price'] ??
+                  rideData['price'] ??
+                  rideData['prix'] ??
+                  0.0)
+              .toDouble(),
       createdAt: rideData['created_at'] != null
           ? DateTime.parse(rideData['created_at'])
           : null,
@@ -121,6 +136,8 @@ class Ride extends Equatable {
     String? carModel,
     String? carPlate,
     String? clientId,
+    String? clientName,
+    String? clientPhone,
     String? pickupAddress,
     String? destinationAddress,
     double? pickupLat,
@@ -139,6 +156,8 @@ class Ride extends Equatable {
       carModel: carModel ?? this.carModel,
       carPlate: carPlate ?? this.carPlate,
       clientId: clientId ?? this.clientId,
+      clientName: clientName ?? this.clientName,
+      clientPhone: clientPhone ?? this.clientPhone,
       pickupAddress: pickupAddress ?? this.pickupAddress,
       destinationAddress: destinationAddress ?? this.destinationAddress,
       pickupLat: pickupLat ?? this.pickupLat,
@@ -160,6 +179,8 @@ class Ride extends Equatable {
     carModel,
     carPlate,
     clientId,
+    clientName,
+    clientPhone,
     pickupAddress,
     destinationAddress,
     pickupLat,
@@ -175,6 +196,7 @@ class Ride extends Equatable {
 abstract class RideRepository {
   Future<Ride?> requestRide(Ride ride);
   Future<Ride?> getRideById(String rideId);
+  Future<Ride?> getActiveRide();
   Future<void> cancelRide(String rideId);
   Stream<Ride> watchRideUpdates(String rideId);
 }

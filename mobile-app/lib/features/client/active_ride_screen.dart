@@ -6,7 +6,6 @@ import 'package:taxi_track/core/ride_repository.dart';
 import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
 import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
 import 'package:taxi_track/shared/widgets/driver_info_card.dart';
-import 'package:taxi_track/shared/widgets/app_button.dart';
 
 class ActiveRideScreen extends StatefulWidget {
   final Ride ride;
@@ -253,17 +252,6 @@ class _ActiveRideScreenState extends State<ActiveRideScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: AppButton(
-                                text: 'Complete',
-                                onPressed: () {
-                                  context.read<RideBlocImpl>().add(
-                                    bloc.CompleteRide(widget.ride.id!),
-                                  );
-                                },
-                              ),
-                            ),
                           ],
                         ),
                       ],
@@ -328,7 +316,7 @@ class _ActiveRideScreenState extends State<ActiveRideScreen> {
           _buildInfoRow(
             Icons.attach_money,
             'Estimated Fare',
-            '\$${widget.ride.estimatedPrice?.toStringAsFixed(2) ?? '0.00'}',
+            '${widget.ride.estimatedPrice?.toStringAsFixed(0) ?? '0'} CFA',
           ),
         ],
       ),

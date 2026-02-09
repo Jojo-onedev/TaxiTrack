@@ -42,10 +42,12 @@ dependencies:
   flutter_svg: ^2.0.9
   dio: ^5.3.3
   flutter_secure_storage: ^10.0.0
+  intl: ^0.18.1
   flutter_map: ^7.0.0
   latlong2: ^0.9.1
   http: ^1.1.0
   geolocator: ^14.0.2
+  socket_io_client: ^3.0.2
   # mapbox_maps_flutter: ^1.0.0  # Disabled in favor of OpenStreetMap
 
 dev_dependencies:

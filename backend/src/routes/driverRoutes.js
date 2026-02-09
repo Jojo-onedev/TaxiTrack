@@ -6,7 +6,9 @@ const {
   acceptRide,
   updateRideStatus,
   getDriverStats,
-  getDriverCar
+  getDriverCar,
+  getDriverRideHistory,
+  getDriverEarningsHistory
 } = require('../controllers/driverController');
 const { authenticate, authorize } = require('../middleware/auth');
 const { handleValidationErrors } = require('../middleware/errorHandler');
@@ -88,5 +90,19 @@ router.get('/stats/summary', getDriverStats);
  * @access  Driver only
  */
 router.get('/car', getDriverCar);
+
+/**
+ * @route   GET /api/driver/rides/history
+ * @desc    Récupérer l'historique des courses
+ * @access  Driver only
+ */
+router.get('/rides/history', getDriverRideHistory);
+
+/**
+ * @route   GET /api/driver/earnings/history
+ * @desc    Récupérer l'historique des gains
+ * @access  Driver only
+ */
+router.get('/earnings/history', getDriverEarningsHistory);
 
 module.exports = router;

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:taxi_track/core/app_colors.dart';
 import 'package:taxi_track/core/ride_repository.dart';
-import 'package:taxi_track/features/ride/ride_bloc.dart' as bloc;
-import 'package:taxi_track/features/ride/ride_bloc_impl.dart';
+import 'package:taxi_track/features/driver/driver_bloc.dart' as driver_bloc;
+import 'package:taxi_track/features/driver/driver_bloc_impl.dart';
 import 'package:taxi_track/shared/widgets/client_info_card.dart';
 import 'package:taxi_track/shared/widgets/app_button.dart';
 
@@ -20,11 +21,48 @@ class DriverActiveRideScreen extends StatefulWidget {
 class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
   late Timer _timer;
   int _elapsedSeconds = 0;
+  StreamSubscription<Position>? _positionSubscription;
+  late Ride _currentRide;
 
   @override
   void initState() {
     super.initState();
+    _currentRide = widget.ride;
     _startTimer();
+    _startLocationStreaming();
+  }
+
+  void _startLocationStreaming() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    if (permission == LocationPermission.deniedForever) return;
+
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen((Position position) {
+          if (mounted) {
+            context.read<DriverBlocImpl>().add(
+              driver_bloc.DriverLocationUpdated(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          }
+        });
   }
 
   void _startTimer() {
@@ -36,6 +74,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    _positionSubscription?.cancel();
     super.dispose();
   }
 
@@ -45,8 +84,8 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
     return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
-  String _getTripStateTitle() {
-    switch (widget.ride.status) {
+  String _getTripStateTitle(Ride ride) {
+    switch (ride.status) {
       case RideStatus.accepted:
         return 'Going to Pickup';
       case RideStatus.arrived:
@@ -60,34 +99,36 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<RideBlocImpl, bloc.RideState>(
+    return BlocListener<DriverBlocImpl, driver_bloc.DriverState>(
       listener: (context, state) {
-        if (state is bloc.RideCompleted) {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '🎉 Trip completed! You earned \$${widget.ride.estimatedPrice?.toStringAsFixed(2) ?? '0.00'}',
+        if (state is driver_bloc.RideUpdateState) {
+          setState(() {
+            _currentRide = state.ride;
+          });
+
+          if (state.ride.status == RideStatus.completed) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Course terminée ! Prix : ${state.ride.estimatedPrice?.toStringAsFixed(0) ?? '0'} CFA',
+                ),
+                backgroundColor: AppColors.success,
               ),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            );
+            Navigator.of(context).pop();
+          } else if (state.ride.status == RideStatus.cancelled) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Course annulée.'),
+                backgroundColor: AppColors.error,
               ),
-            ),
-          );
-        } else if (state is bloc.RideCancelled) {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
+            );
+            Navigator.of(context).pop();
+          }
+        } else if (state is driver_bloc.RideAcceptedState) {
+          setState(() {
+            _currentRide = state.ride;
+          });
         }
       },
       child: Scaffold(
@@ -122,7 +163,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      _getTripStateTitle(),
+                      _getTripStateTitle(_currentRide),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -131,7 +172,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${widget.ride.pickupAddress} → ${widget.ride.destinationAddress}',
+                      '${_currentRide.pickupAddress} → ${_currentRide.destinationAddress}',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 14, color: Colors.grey[400]),
                     ),
@@ -203,7 +244,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
                       children: [
                         // Client Info
                         ClientInfoCard(
-                          clientName: widget.ride.clientId,
+                          clientName: _currentRide.clientName ?? 'Client',
                           rating: 4.5,
                           onCall: () {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -223,11 +264,11 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
                         const SizedBox(height: 20),
 
                         // Trip Info
-                        _buildTripInfo(),
+                        _buildTripInfo(_currentRide),
                         const SizedBox(height: 20),
 
                         // Action Buttons based on state
-                        _buildActionButtons(),
+                        _buildActionButtons(context, _currentRide),
                       ],
                     ),
                   ),
@@ -264,7 +305,7 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
     );
   }
 
-  Widget _buildTripInfo() {
+  Widget _buildTripInfo(Ride ride) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -274,18 +315,14 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
       ),
       child: Column(
         children: [
-          _buildInfoRow(Icons.location_on, 'Pickup', widget.ride.pickupAddress),
+          _buildInfoRow(Icons.location_on, 'Pickup', ride.pickupAddress),
           const SizedBox(height: 12),
-          _buildInfoRow(
-            Icons.flag,
-            'Destination',
-            widget.ride.destinationAddress,
-          ),
+          _buildInfoRow(Icons.flag, 'Destination', ride.destinationAddress),
           const SizedBox(height: 12),
           _buildInfoRow(
             Icons.attach_money,
             'Fare',
-            '\$${widget.ride.estimatedPrice?.toStringAsFixed(2) ?? '0.00'}',
+            '${ride.estimatedPrice?.toStringAsFixed(0) ?? '0'} CFA',
           ),
         ],
       ),
@@ -320,16 +357,19 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
-    switch (widget.ride.status) {
+  Widget _buildActionButtons(BuildContext context, Ride ride) {
+    switch (ride.status) {
       case RideStatus.accepted:
         return AppButton(
           text: 'I\'ve Arrived',
           onPressed: () {
-            // Mark as arrived - this would trigger state change in real app
+            // Mark as arrived
+            context.read<DriverBlocImpl>().add(
+              driver_bloc.UpdateRideStatus(ride.id!, RideStatus.arrived),
+            );
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('✅ Marked as arrived at pickup'),
+                content: Text('Marked as arrived at pickup'),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -340,7 +380,9 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
         return AppButton(
           text: 'Start Trip',
           onPressed: () {
-            context.read<RideBlocImpl>().add(bloc.StartTrip(widget.ride.id!));
+            context.read<DriverBlocImpl>().add(
+              driver_bloc.UpdateRideStatus(ride.id!, RideStatus.inProgress),
+            );
           },
         );
 
@@ -371,9 +413,13 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
               child: AppButton(
                 text: 'Complete Trip',
                 onPressed: () {
-                  context.read<RideBlocImpl>().add(
-                    bloc.CompleteRide(widget.ride.id!),
+                  context.read<DriverBlocImpl>().add(
+                    driver_bloc.UpdateRideStatus(
+                      ride.id!,
+                      RideStatus.completed,
+                    ),
                   );
+                  // Navigation handled by BlocListener
                 },
               ),
             ),
@@ -404,9 +450,13 @@ class _DriverActiveRideScreenState extends State<DriverActiveRideScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.read<RideBlocImpl>().add(
-                bloc.CancelRide(widget.ride.id!),
+              context.read<DriverBlocImpl>().add(
+                driver_bloc.UpdateRideStatus(
+                  widget.ride.id!,
+                  RideStatus.cancelled,
+                ),
               );
+              Navigator.of(context).pop(); // Close screen on cancel
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Yes, Cancel'),

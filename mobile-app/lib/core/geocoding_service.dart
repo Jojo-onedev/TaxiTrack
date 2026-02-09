@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
@@ -46,10 +47,10 @@ class GeocodingService {
         final features = data['features'] as List;
         return features.map((f) => SearchSuggestion.fromJson(f)).toList();
       }
-      print('Geocoding response: ${response.statusCode}');
+      debugPrint('Geocoding response: ${response.statusCode}');
       return [];
     } catch (e) {
-      print('Geocoding error: $e');
+      debugPrint('Geocoding error: $e');
       return [];
     }
   }

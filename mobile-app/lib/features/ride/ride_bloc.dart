@@ -77,6 +77,14 @@ class WatchRideUpdates extends RideEvent {
   List<Object?> get props => [rideId];
 }
 
+class CheckActiveRide extends RideEvent {
+  const CheckActiveRide();
+}
+
+class ResetRide extends RideEvent {
+  const ResetRide();
+}
+
 // States
 abstract class RideState extends Equatable {
   const RideState();

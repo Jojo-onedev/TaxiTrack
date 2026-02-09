@@ -1,11 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_track/core/auth_repository.dart';
+import 'package:taxi_track/core/socket_service.dart';
 import 'auth_bloc.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
+  final SocketService _socketService;
 
-  AuthBloc(this._authRepository) : super(AuthInitial()) {
+  AuthBloc(this._authRepository, this._socketService) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<LoginRequested>(_onLoginRequested);
     on<SignUpRequested>(_onSignUpRequested);
@@ -18,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     final user = await _authRepository.getCurrentUser();
     if (user != null) {
+      _socketService.connect();
       emit(Authenticated(user));
     } else {
       emit(Unauthenticated());
@@ -32,6 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final user = await _authRepository.login(event.email, event.password);
       if (user != null) {
+        _socketService.connect();
         emit(Authenticated(user));
       } else {
         emit(const AuthFailure('Identifiants invalides'));
@@ -58,6 +62,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null) {
         // Refresh to get full profile (residence, phone) missing in signup response
         final fullUser = await _authRepository.getCurrentUser();
+        _socketService.connect();
         emit(Authenticated(fullUser ?? user));
       } else {
         emit(const AuthFailure('Erreur lors de l\'inscription'));
@@ -71,6 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    _socketService.disconnect();
     await _authRepository.logout();
     emit(Unauthenticated());
   }

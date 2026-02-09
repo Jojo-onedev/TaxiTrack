@@ -4,11 +4,13 @@ import 'package:taxi_track/core/app_colors.dart';
 class RideStatusOverlay extends StatelessWidget {
   final String message;
   final bool showLoading;
+  final VoidCallback? onCancel;
 
   const RideStatusOverlay({
     super.key,
     required this.message,
     this.showLoading = true,
+    this.onCancel,
   });
 
   @override
@@ -67,6 +69,29 @@ class RideStatusOverlay extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
+              if (onCancel != null) ...[
+                const SizedBox(height: 24),
+                OutlinedButton(
+                  onPressed: onCancel,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    side: const BorderSide(color: AppColors.error),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel Request',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

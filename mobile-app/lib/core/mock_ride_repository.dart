@@ -43,6 +43,21 @@ class MockRideRepository implements RideRepository {
   }
 
   @override
+  Future<Ride?> getActiveRide() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    // Find first non-ended ride
+    try {
+      return _rides.values.firstWhere(
+        (r) =>
+            r.status != RideStatus.completed &&
+            r.status != RideStatus.cancelled,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   Future<void> cancelRide(String rideId) async {
     await Future.delayed(const Duration(seconds: 1));
     final ride = _rides[rideId];

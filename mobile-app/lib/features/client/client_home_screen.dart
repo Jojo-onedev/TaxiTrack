@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taxi_track/core/app_colors.dart';
+import 'package:taxi_track/core/socket_service.dart';
 import 'package:taxi_track/core/service_locator.dart';
 import 'package:taxi_track/core/map_service.dart';
 import 'package:taxi_track/features/client/active_ride_screen.dart';
@@ -28,7 +30,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   final List<Widget> _screens = [
     const _HomeTab(),
     const RideHistoryScreen(),
-    const Center(child: Text('Notifications')),
+    const _ClientAlertsTab(),
   ];
 
   @override
@@ -90,11 +92,37 @@ class _HomeTabState extends State<_HomeTab> {
   final MapController _mapController = MapController();
   LatLng _currentLocation = const LatLng(48.8566, 2.3522); // Paris default
   LatLng? _destinationLocation;
+  LatLng? _driverLocation;
+  StreamSubscription? _socketSubscription;
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+    _listenToDriverPosition();
+    // Check if there is an active ride to recover
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RideBlocImpl>().add(const bloc.CheckActiveRide());
+    });
+  }
+
+  void _listenToDriverPosition() {
+    _socketSubscription = sl<SocketService>().driverPosition.listen((data) {
+      if (mounted) {
+        setState(() {
+          _driverLocation = LatLng(
+            (data['lat'] as num).toDouble(),
+            (data['long'] as num).toDouble(),
+          );
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _socketSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -143,26 +171,48 @@ class _HomeTabState extends State<_HomeTab> {
   Widget build(BuildContext context) {
     return BlocConsumer<RideBlocImpl, bloc.RideState>(
       listener: (context, state) {
-        if (state is bloc.RideDriverFound) {
+        if (state is bloc.RideDriverFound ||
+            state is bloc.RideConfirmed ||
+            state is bloc.RideInProgress) {
+          final ride = (state as dynamic).ride;
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => BlocProvider.value(
                 value: context.read<RideBlocImpl>(),
-                child: ActiveRideScreen(ride: state.ride),
+                child: ActiveRideScreen(ride: ride),
               ),
             ),
           );
         } else if (state is bloc.RideError) {
+          final isAlreadyActive = state.message.contains(
+            ' déjà une course en cours',
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
               backgroundColor: AppColors.error,
+              action: isAlreadyActive
+                  ? SnackBarAction(
+                      label: 'REPROUVER',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        context.read<RideBlocImpl>().add(
+                          const bloc.CheckActiveRide(),
+                        );
+                      },
+                    )
+                  : null,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           );
+
+          if (isAlreadyActive) {
+            context.read<RideBlocImpl>().add(const bloc.CheckActiveRide());
+          }
         }
       },
       builder: (context, state) {
@@ -195,6 +245,20 @@ class _HomeTabState extends State<_HomeTab> {
                         size: 40,
                       ),
                     ),
+                    if (_driverLocation != null)
+                      Marker(
+                        point: _driverLocation!,
+                        width: 80,
+                        height: 80,
+                        child: Transform.rotate(
+                          angle: 0.0, // We could add bearing here if available
+                          child: const Icon(
+                            Icons.local_taxi,
+                            color: AppColors.black,
+                            size: 40,
+                          ),
+                        ),
+                      ),
                     if (_destinationLocation != null)
                       Marker(
                         point: _destinationLocation!,
@@ -239,7 +303,10 @@ class _HomeTabState extends State<_HomeTab> {
             ),
 
             // Destination Search Button (only show when no active ride)
-            if (state is! bloc.RideSearching && state is! bloc.RideDriverFound)
+            if (state is! bloc.RideSearching &&
+                state is! bloc.RideDriverFound &&
+                state is! bloc.RideConfirmed &&
+                state is! bloc.RideInProgress)
               Positioned(
                 bottom: 100,
                 left: 16,
@@ -284,7 +351,20 @@ class _HomeTabState extends State<_HomeTab> {
 
             // Searching Overlay
             if (state is bloc.RideRequesting || state is bloc.RideSearching)
-              RideStatusOverlay(message: 'Searching for nearby drivers'),
+              RideStatusOverlay(
+                message: 'Searching for nearby drivers',
+                onCancel: () {
+                  final rideId = state is bloc.RideSearching
+                      ? state.ride.id
+                      : null;
+                  if (rideId != null) {
+                    context.read<RideBlocImpl>().add(bloc.CancelRide(rideId));
+                  } else {
+                    // Just reset the state if no ID yet (requesting phase)
+                    // We might need a ResetRide state or similar
+                  }
+                },
+              ),
 
             // Driver Found Card
             if (state is bloc.RideDriverFound)
@@ -554,6 +634,112 @@ class _DestinationSheet extends StatelessWidget {
             lng,
           );
         },
+      ),
+    );
+  }
+}
+
+class _ClientAlertsTab extends StatelessWidget {
+  const _ClientAlertsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Alerts & Notifications'),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.black,
+        elevation: 0,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildAlertItem(
+            context,
+            'Promotion exclusive',
+            'Bénéficiez de 20% de réduction sur votre prochaine course !',
+            Icons.local_offer,
+            Colors.orange,
+            'Il y a 2h',
+          ),
+          _buildAlertItem(
+            context,
+            'Sécurité',
+            'N\'oubliez pas de vérifier la plaque d\'immatriculation avant de monter.',
+            Icons.security,
+            Colors.blue,
+            'Hier',
+          ),
+          _buildAlertItem(
+            context,
+            'Bienvenue',
+            'Merci d\'avoir rejoint TaxiTrack. Votre première course est à moitié prix !',
+            Icons.star,
+            AppColors.primary,
+            '2 jours',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlertItem(
+    BuildContext context,
+    String title,
+    String message,
+    IconData icon,
+    Color color,
+    String time,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      time,
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

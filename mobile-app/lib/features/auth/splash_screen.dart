@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen>
         if (state is! AuthInitial) {
           // Delay a bit to show splash animation
           Future.delayed(const Duration(seconds: 2), () {
-            if (!mounted) return;
+            if (!context.mounted) return;
 
             Widget nextScreen;
             if (state is Authenticated) {
