@@ -2,6 +2,43 @@
 
 TaxiTrack est une solution complète de gestion de services VTC et Taxi. Le projet combine un backend robuste, une application mobile hybride pour les clients et chauffeurs, et un tableau de bord d'administration web.
 
+## 🐳 Déploiement Simplifié avec Docker (Recommandé)
+
+Le projet inclut une configuration Docker qui permet de lancer toute la plateforme (Backend, Base de données et Dashboard Admin) sans avoir à installer Node.js ou PostgreSQL manuellement sur votre machine.
+
+### 1. Pourquoi utiliser Docker ?
+Docker crée des "conteneurs" qui contiennent tout ce dont votre application a besoin pour fonctionner. Cela évite les erreurs du type "ça marche sur ma machine mais pas sur la tienne" et simplifie énormément l'installation.
+
+### 2. Installation (Pour débutants)
+Si vous n'avez jamais utilisé Docker :
+1.  **Téléchargez Docker Desktop** : Allez sur [docker.com](https://www.docker.com/products/docker-desktop/) et téléchargez la version pour Windows ou Mac.
+2.  **Installez-le** : Suivez les instructions classiques d'installation.
+3.  **Lancez Docker** : Une fois installé, ouvrez l'application Docker Desktop et attendez que l'icône de la baleine en bas à gauche devienne verte/stable.
+
+### 3. Lancer TaxiTrack en un clic
+Une fois Docker prêt :
+1.  Ouvrez un terminal à la racine du projet TaxiTrack.
+2.  Tapez la commande suivante :
+    ```bash
+    docker-compose up --build
+    ```
+3.  **C'est tout !** Docker va télécharger les images nécessaires, configurer la base de données et lancer les serveurs.
+
+### 4. Initialisation de la base de données
+La toute première fois que vous lancez le projet, vous devez créer les tables. Laissez Docker tourner et ouvrez un **deuxième** terminal pour taper :
+```bash
+# Entrer dans le serveur backend pour créer les tables
+docker exec -it taxitrack_backend npm run db:migrate
+# Ajouter des données de test (optionnel)
+docker exec -it taxitrack_backend npm run db:seed
+```
+
+### 5. Accès aux interfaces
+*   **Tableau de bord Admin** : Ouvrez [http://localhost:80](http://localhost:80)
+*   **API Backend** : [http://localhost:5000](http://localhost:5000)
+
+---
+
 ## 🏗️ Architecture du Projet
 
 La plateforme est divisée en trois modules principaux :
@@ -20,7 +57,7 @@ La plateforme est divisée en trois modules principaux :
 
 ---
 
-## 🚀 Installation Rapide
+## 🚀 Installation Manuelle (Sans Docker)
 
 ### Prérequis
 *   Node.js (v18+) & npx
@@ -49,7 +86,7 @@ npm run dev
 ```bash
 cd mobile-app
 flutter pub get
-# Assurez-huii d'avoir un émulateur ou appareil connecté
+# Assurez-vous d'avoir un émulateur ou appareil connecté
 flutter run
 ```
 
