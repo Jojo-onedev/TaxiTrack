@@ -184,7 +184,7 @@ class _DashboardTabState extends State<_DashboardTab> {
                                 isOnline = state.isOnline;
                               }
                               return Text(
-                                isOnline ? 'En ligne' : 'Hors ligne',
+                                isOnline ? 'Online' : 'Offline',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
