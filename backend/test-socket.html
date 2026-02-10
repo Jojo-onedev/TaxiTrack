@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Socket.io - TaxiTrack</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .connected { background: #d4edda; color: #155724; }
+    .disconnected { background: #f8d7da; color: #721c24; }
+    .message {
+      padding: 10px;
+      margin: 5px 0;
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      border-radius: 4px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background: #2196F3;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover { background: #0d8bf2; }
+    .log {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Test Socket.io - TaxiTrack</h1>
+    
+    <div id="status" class="status disconnected">Déconnecté</div>
+    
+    <div>
+      <h3>Connexion</h3>
+      <input type="text" id="token" placeholder="Collez votre token JWT ici" style="width: 500px;">
+      <br>
+      <select id="role">
+        <option value="client">Client</option>
+        <option value="driver">Chauffeur</option>
+      </select>
+      <button onclick="connect()">Se connecter</button>
+      <button onclick="disconnect()">Se déconnecter</button>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <h3>Test Chauffeur - Envoyer position GPS</h3>
+      <input type="number" id="lat" placeholder="Latitude" value="12.3714">
+      <input type="number" id="long" placeholder="Longitude" value="-1.5197">
+      <button onclick="sendLocation()">Envoyer Position</button>
+    </div>
+
+    <div class="log" id="log">
+      <p><strong>Journal des événements :</strong></p>
+    </div>
+  </div>
+
+  <script>
+    let socket;
+
+    function addLog(message, type = 'info') {
+      const log = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      const colors = {
+        info: '#2196F3',
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800'
+      };
+      log.innerHTML += `<div style="color: ${colors[type]}; margin: 5px 0;">[${time}] ${message}</div>`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function connect() {
+      const token = document.getElementById('token').value;
+      const role = document.getElementById('role').value;
+
+      if (!token) {
+        alert('Veuillez entrer un token JWT');
+        return;
+      }
+
+      socket = io('http://localhost:5000', {
+        auth: {
+          token: token
+        }
+      });
+
+      socket.on('connect', () => {
+        document.getElementById('status').className = 'status connected';
+        document.getElementById('status').textContent = `Connecté (${role})`;
+        addLog(`Connecté en tant que ${role}`, 'success');
+      });
+
+      socket.on('disconnect', () => {
+        document.getElementById('status').className = 'status disconnected';
+        document.getElementById('status').textContent = 'Déconnecté';
+        addLog('Déconnecté', 'error');
+      });
+
+      socket.on('error', (error) => {
+        addLog(`Erreur: ${error.message}`, 'error');
+      });
+
+      // Événements pour le CLIENT
+      socket.on('new_ride_request', (data) => {
+        addLog(`Nouvelle course disponible ! De ${data.pickup.address} vers ${data.destination.address}. Prix: ${data.price} FCFA`, 'warning');
+        console.log('Détails course:', data);
+      });
+
+      socket.on('ride_accepted', (data) => {
+        addLog(`${data.message} Chauffeur: ${data.driver.name} (${data.driver.car.model})`, 'success');
+        console.log('Détails chauffeur:', data);
+      });
+
+      socket.on('driver_position', (data) => {
+        addLog(`Position chauffeur: ${data.lat}, ${data.long}`, 'info');
+      });
+
+      socket.on('status_changed', (data) => {
+        addLog(`${data.message} (Statut: ${data.status})`, 'warning');
+      });
+
+      socket.on('ride_cancelled', (data) => {
+        addLog(`${data.message}`, 'error');
+      });
+    }
+
+    function disconnect() {
+      if (socket) {
+        socket.disconnect();
+      }
+    }
+
+    function sendLocation() {
+      if (!socket || !socket.connected) {
+        alert('Vous devez être connecté en tant que chauffeur');
+        return;
+      }
+
+      const lat = parseFloat(document.getElementById('lat').value);
+      const long = parseFloat(document.getElementById('long').value);
+
+      socket.emit('update_location', { lat, long });
+      addLog(`Position envoyée: ${lat}, ${long}`, 'success');
+    }
+  </script>
+</body>
+</html>
