@@ -1,16 +1,68 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Frontend Admin
 
-Currently, two official plugins are available:
+Admin dashboard for TaxiTrack application.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Prerequisites
 
-## React Compiler
+- Node.js (v14 or higher)
+- npm or yarn
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Installation
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Development
+
+```bash
+npm run dev
+```
+
+Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+## Build
+
+```bash
+npm run build
+```
+
+Builds the app for production to the `build` folder.
+
+## Project Structure
+
+```
+frontend-admin/
+├── public/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   ├── App.js
+│   └── index.js
+├── package.json
+└── README.md
+```
+
+## Configuration
+
+Create a `.env` file in the root directory with necessary environment variables:
+
+```
+REACT_APP_API_URL=http://localhost:5000
+```
+
+## Testing
+
+```bash
+npm test
+```
+
+## Deployment
+
+See [deployment documentation](./docs/deployment.md) for production setup.
+
+## License
+
+MIT
