@@ -159,15 +159,15 @@ const Clients = () => {
             </div>
           </div>
 
-          <div className="stat-card">
+          {/* <div className="stat-card">
             <div className="stat-icon active">
               <i className="fas fa-user-check"></i>
             </div>
             <div className="stat-content">
-              <h3>Actifs (30 jours)</h3>
+              <h3>Actifs (30 days)</h3>
               <p className="stat-number">{stats.active_last_30_days || 0}</p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="tabs-section">
@@ -177,7 +177,7 @@ const Clients = () => {
         </div>
 
         <div className="content-header">
-          <h2 className="section-title">Liste des clients</h2>
+          <h2 className="section-title">List</h2>
 
           <div className="header-actions">
             <div className="search-box">
@@ -194,7 +194,7 @@ const Clients = () => {
             </div>
 
             <button className="btn-refresh" onClick={fetchClients}>
-              <i className="fas fa-sync-alt"></i> Actualiser
+              <i className="fas fa-sync-alt"></i> 
             </button>
           </div>
         </div>
@@ -205,10 +205,10 @@ const Clients = () => {
               <tr>
                 <th>Sl</th>
                 <th>Client ID</th>
-                <th>Nom & Prénom</th>
+                <th>Name</th>
                 <th>Email</th>
-                <th>Téléphone</th>
-                <th>Lieu de résidence</th>
+                <th>Phone</th>
+                <th>Residence Location</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -254,7 +254,7 @@ const Clients = () => {
                           title="Supprimer"
                           onClick={() => handleDelete(client.user_id)}
                         >
-                          <i className="fas fa-trash"></i>
+                          Delete
                         </button>
                       </div>
                     </td>

@@ -648,3 +648,93 @@
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+
+
+
+
+
+
+
+
+
+/* Boutons principaux */
+.btn-add, .btn-save, .btn-cancel, .btn-edit, .btn-delete {
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+/* Bouton Ajouter / Nouveau */
+.btn-add {
+  background-color: #4CAF50;
+  color: #fff;
+}
+.btn-add:hover {
+  background-color: #45a049;
+}
+
+/* Bouton Modifier */
+.btn-edit {
+  width: 60px;
+  height: 30px;
+  background-color: #29b357;
+  color: #fff;
+}
+.btn-edit:hover {
+  background-color: #0b7dda;
+}
+
+/* Bouton Supprimer */
+.btn-delete {
+  width: 50px;
+  height: 30px;
+  background-color: #f44336;
+  color: #fff;
+}
+.btn-delete:hover {
+  background-color: #da190b;
+}
+
+/* Formulaire - sauvegarder et annuler */
+.btn-save {
+  background-color: #4CAF50;
+  color: #fff;
+}
+.btn-save:hover {
+  background-color: #45a049;
+}
+.btn-cancel {
+  background-color: #777;
+  color: #fff;
+}
+.btn-cancel:hover {
+  background-color: #555;
+}
+
+/* Icônes dans boutons */
+.btn-add i, .btn-save i, .btn-cancel i, .btn-edit i, .btn-delete i {
+  font-size: 14px;
+}
+
+/* Boutons dans tableau */
+.maintenance-table button {
+  padding: 4px 8px;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+/* Table responsive et padding suffisant */
+.table-container {
+  overflow-x: auto;
+}
+.maintenance-table td, .maintenance-table th {
+  padding: 8px 12px;
+  text-align: left;
+}

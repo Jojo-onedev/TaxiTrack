@@ -58,12 +58,12 @@ html, body, #root {
   
 }
 
-/* SIDEBAR */
+/* SIDEBAR
 .sidebar {
   background: linear-gradient(180deg, var(--sidebar), var(--sidebar2));
   color: var(--white);
   padding: 18px 14px;
-}
+} */
 
 .brand {
   display: flex;
@@ -225,11 +225,12 @@ html, body, #root {
 
 /* KPI GRID */
 .kpiGrid {
+
   display: grid;
   display:inline-flex;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
-  margin-bottom: 10px;
+  margin-bottom: 50px;
 }
 
 .kpiCard {
@@ -696,4 +697,14 @@ html, body, #root {
 
   /* éviter que la topbar soit serrée */
   .topbarRight { width: 100%; justify-content: flex-end; }
+}
+
+
+
+
+
+.kpi-icon {
+  font-size: 0.8 rem !important;
+  width: 2.2rem !important;
+  height: 2.2rem !important;
 }

@@ -371,9 +371,6 @@ const getDriverById = async (req, res, next) => {
         c.nom_modele,
         c.plaque_immatriculation,
         c.type_vehicule,
-        c.couleur,
-        c.annee_fabrication,
-        c.kilometrage,
         c.status as car_status
       FROM driver_profiles dp
       JOIN users u ON u.id = dp.user_id
@@ -1315,6 +1312,282 @@ const createMaintenance = async (req, res, next) => {
   }
 };
 
+
+// routes/maintenance.js
+
+
+// adminController.js
+
+// ============================================
+// GESTION DE LA MAINTENANCE (suite)
+// ============================================
+
+/**
+ * PATCH /api/admin/maintenance/:id
+ * Modifier une maintenance
+ */
+// const updateMaintenance = async (req, res, next) => {
+//   const client = await pool.connect();
+//   try {
+//     const { id } = req.params;
+//     const { car_id, type_maintenance, description, cout, date_maintenance } = req.body;
+
+//     await client.query('BEGIN');
+
+//     // Vérifier que la maintenance existe
+//     const maintenanceCheck = await client.query(
+//       'SELECT * FROM maintenance WHERE id = $1',
+//       [id]
+//     );
+//     if (maintenanceCheck.rows.length === 0) {
+//       await client.query('ROLLBACK');
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Maintenance non trouvée'
+//       });
+//     }
+
+//     // Si car_id fourni, vérifier que le véhicule existe
+//     if (car_id !== undefined && car_id !== null) {
+//       const carExists = await client.query(
+//         'SELECT id FROM cars WHERE id = $1',
+//         [car_id]
+//       );
+//       if (carExists.rows.length === 0) {
+//         await client.query('ROLLBACK');
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Véhicule non trouvé'
+//         });
+//       }
+//     }
+
+//     // Construire la requête UPDATE dynamiquement
+//     const updates = [];
+//     const values = [];
+//     let paramIndex = 1;
+
+//     if (car_id !== undefined) {
+//       updates.push(`car_id = $${paramIndex}`);
+//       values.push(car_id);
+//       paramIndex++;
+//     }
+//     if (type_maintenance !== undefined) {
+//       updates.push(`type_maintenance = $${paramIndex}`);
+//       values.push(type_maintenance);
+//       paramIndex++;
+//     }
+//     if (description !== undefined) {
+//       updates.push(`description = $${paramIndex}`);
+//       values.push(description);
+//       paramIndex++;
+//     }
+//     if (cout !== undefined) {
+//       updates.push(`cout = $${paramIndex}`);
+//       values.push(cout);
+//       paramIndex++;
+//     }
+//     if (date_maintenance !== undefined) {
+//       updates.push(`date_maintenance = $${paramIndex}`);
+//       values.push(date_maintenance);
+//       paramIndex++;
+//     }
+
+//     if (updates.length === 0) {
+//       await client.query('ROLLBACK');
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Aucune donnée à mettre à jour'
+//       });
+//     }
+
+//     values.push(id);
+//     const updateQuery = `
+//       UPDATE maintenance
+//       SET ${updates.join(', ')}
+//       WHERE id = $${paramIndex}
+//       RETURNING *
+//     `;
+
+//     const result = await client.query(updateQuery, values);
+
+//     await client.query('COMMIT');
+
+//     res.json({
+//       success: true,
+//       message: 'Maintenance mise à jour avec succès',
+//       data: {
+//         maintenance: result.rows[0]
+//       }
+//     });
+//   } catch (error) {
+//     await client.query('ROLLBACK');
+//     next(error);
+//   } finally {
+//     client.release();
+//   }
+// };
+
+// /**
+//  * DELETE /api/admin/maintenance/:id
+//  * Supprimer une maintenance
+//  */
+// const deleteMaintenance = async (req, res, next) => {
+//   const client = await pool.connect();
+//   try {
+//     const { id } = req.params;
+
+//     await client.query('BEGIN');
+
+//     // Vérifier que la maintenance existe
+//     const maintenanceCheck = await client.query(
+//       'SELECT * FROM maintenance WHERE id = $1',
+//       [id]
+//     );
+//     if (maintenanceCheck.rows.length === 0) {
+//       await client.query('ROLLBACK');
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Maintenance non trouvée'
+//       });
+//     }
+
+//     // Supprimer la maintenance
+//     await client.query(
+//       'DELETE FROM maintenance WHERE id = $1',
+//       [id]
+//     );
+
+//     await client.query('COMMIT');
+
+//     res.json({
+//       success: true,
+//       message: 'Maintenance supprimée avec succès'
+//     });
+//   } catch (error) {
+//     await client.query('ROLLBACK');
+//     next(error);
+//   } finally {
+//     client.release();
+//   }
+// };
+
+
+/**
+ * PATCH /api/admin/maintenance/:id
+ * Modifier une maintenance
+ */
+const updateMaintenance = async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const { car_id, type_maintenance, description, cout, date_maintenance } = req.body;
+
+    await client.query('BEGIN');
+
+    // Vérifier que la maintenance existe
+    const maintenanceExists = await client.query(
+      'SELECT * FROM maintenance WHERE id = $1',
+      [id]
+    );
+    if (maintenanceExists.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({
+        success: false,
+        message: 'Maintenance non trouvée'
+      });
+    }
+
+    // Construire la requête UPDATE dynamiquement
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (car_id !== undefined) { updates.push(`car_id = $${paramIndex}`); values.push(car_id); paramIndex++; }
+    if (type_maintenance !== undefined) { updates.push(`type_maintenance = $${paramIndex}`); values.push(type_maintenance); paramIndex++; }
+    if (description !== undefined) { updates.push(`description = $${paramIndex}`); values.push(description); paramIndex++; }
+    if (cout !== undefined) { updates.push(`cout = $${paramIndex}`); values.push(cout); paramIndex++; }
+    if (date_maintenance !== undefined) { updates.push(`date_maintenance = $${paramIndex}`); values.push(date_maintenance); paramIndex++; }
+
+    if (updates.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'Aucune donnée à mettre à jour' });
+    }
+
+    values.push(id);
+    const updateQuery = `
+      UPDATE maintenance 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+
+    const result = await client.query(updateQuery, values);
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: 'Maintenance mise à jour avec succès',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    next(error);
+  } finally {
+    client.release();
+  }
+};
+
+/**
+ * DELETE /api/admin/maintenance/:id
+ * Supprimer une maintenance
+ */
+const deleteMaintenance = async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+
+    await client.query('BEGIN');
+
+    const result = await client.query(
+      'DELETE FROM maintenance WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({
+        success: false,
+        message: 'Maintenance non trouvée'
+      });
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: 'Maintenance supprimée avec succès'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    next(error);
+  } finally {
+    client.release();
+  }
+};
+
+
+
+// ============================================
+// EXPORTS
+// ============================================
+
+
+
+
+
+
+
 /**
  * GET /api/admin/feedbacks
  * Liste des avis clients
@@ -1367,7 +1640,18 @@ module.exports = {
   // Maintenance
   getMaintenanceHistory,
   createMaintenance,
+  updateMaintenance,
+  deleteMaintenance,
   
   // Feedbacks
   getFeedbacks
 };
+
+
+
+
+
+
+
+
+

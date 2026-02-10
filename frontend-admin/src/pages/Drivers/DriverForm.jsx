@@ -22,23 +22,25 @@ const DriverForm = () => {
     date_entree: new Date().toISOString().split('T')[0]
   });
 
-  const [availableCars, setAvailableCars] = useState([]);
+  const [allCars, setAllCars] = useState([]);  // TOUTES les voitures
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchAvailableCars();
+    fetchAllCars();  // Charge TOUTES les voitures
     if (isEditMode) {
       loadDriver();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const fetchAvailableCars = async () => {
-    const result = await vehicleService.getVehicles({ limit: 100 });
-    if (result.success) {
-      // Filtrer les voitures disponibles (sans chauffeur assigné)
-      const available = result.data.cars.filter(car => !car.driver_id);
-      setAvailableCars(available);
+  // Récupère TOUS les voitures de la table cars
+  const fetchAllCars = async () => {
+    try {
+      const result = await vehicleService.getVehicles({ limit: 100 });
+      if (result.success) {
+        setAllCars(result.data.cars || result.data || []);
+      }
+    } catch (error) {
+      console.error('Erreur voitures:', error);
     }
   };
 
@@ -57,7 +59,7 @@ const DriverForm = () => {
         cnib: driver.cnib || '',
         date_entree: driver.date_entree || new Date().toISOString().split('T')[0],
         car_id: driver.car_id || '',
-        password: '' 
+        password: ''
       });
     } else {
       alert('Erreur: ' + result.error);
@@ -76,7 +78,6 @@ const DriverForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Préparer les données pour l'API
     const apiData = {
       nom: formData.nom,
       prenom: formData.prenom,
@@ -88,7 +89,6 @@ const DriverForm = () => {
       car_id: formData.car_id || null
     };
 
-    // Ajouter password seulement en mode création
     if (!isEditMode) {
       if (!formData.password) {
         alert('Le mot de passe est requis');
@@ -98,7 +98,6 @@ const DriverForm = () => {
       apiData.password = formData.password;
     }
 
-    // Appel API
     const result = isEditMode 
       ? await driverService.updateDriver(id, apiData)
       : await driverService.createDriver(apiData);
@@ -140,7 +139,7 @@ const DriverForm = () => {
               
               <div className="form-row">
                 <div className="form-group">
-                  <label>Nom *</label>
+                  <label>First_name *</label>
                   <input
                     type="text"
                     name="nom"
@@ -152,7 +151,7 @@ const DriverForm = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Prénom *</label>
+                  <label>Last_name *</label>
                   <input
                     type="text"
                     name="prenom"
@@ -179,7 +178,7 @@ const DriverForm = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Téléphone *</label>
+                  <label>phone *</label>
                   <input
                     type="tel"
                     name="telephone"
@@ -193,7 +192,7 @@ const DriverForm = () => {
 
               {!isEditMode && (
                 <div className="form-group">
-                  <label>Mot de passe *</label>
+                  <label>Password *</label>
                   <input
                     type="password"
                     name="password"
@@ -208,7 +207,7 @@ const DriverForm = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>CNIB *</label>
+                  <label>CNIB </label>
                   <input
                     type="text"
                     name="cnib"
@@ -220,7 +219,7 @@ const DriverForm = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Date d'entrée *</label>
+                  <label>Start Date *</label>
                   <input
                     type="date"
                     name="date_entree"
@@ -232,7 +231,7 @@ const DriverForm = () => {
               </div>
 
               <div className="form-group">
-                <label>Lieu de résidence</label>
+                <label>Residence *</label>
                 <input
                   type="text"
                   name="lieu_residence"
@@ -243,6 +242,7 @@ const DriverForm = () => {
               </div>
             </div>
 
+            {/* Voiture - TOUTES les voitures */}
             <div className="form-section">
               <h3>Professional Information</h3>
               
@@ -253,10 +253,10 @@ const DriverForm = () => {
                   value={formData.car_id}
                   onChange={handleChange}
                 >
-                  <option value="">-- Select a car --</option>
-                  {availableCars.map((car) => (
+                  <option value=""> Select a car </option>
+                  {allCars.map((car) => (
                     <option key={car.id} value={car.id}>
-                      {car.nom_modele} - {car.plaque_immatriculation}
+                      {car.nom_modele || car.nommodele} - {car.plaque_immatriculation || car.plaqueimmatriculation}
                     </option>
                   ))}
                 </select>

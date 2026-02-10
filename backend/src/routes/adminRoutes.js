@@ -213,6 +213,37 @@ router.post('/maintenance', [
   body('date_maintenance').optional().isISO8601().withMessage('Date invalide')
 ], adminController.createMaintenance);
 
+/**
+ * PUT /api/admin/maintenance/:id
+ * Modifier une maintenance
+ */
+router.put('/maintenance/:id', [
+  param('id').isInt().withMessage('ID doit être un entier'),
+  body('car_id').optional().isInt().withMessage('Car ID doit être un entier'),
+  body('type_maintenance').optional().notEmpty().withMessage('Le type de maintenance est requis'),
+  body('description').optional(),
+  body('cout').optional().isFloat({ min: 0 }).withMessage('Le coût doit être un nombre positif'),
+  body('date_maintenance').optional().isISO8601().withMessage('Date invalide')
+], adminController.updateMaintenance);
+
+
+/** * DELETE /api/admin/maintenance/:id
+ * Supprimer une maintenance
+ */
+router.delete('/maintenance/:id', [
+  param('id').isInt().withMessage('ID doit être un entier')
+], adminController.deleteMaintenance);
+
+
+
+/**
+ * DELETE /api/admin/maintenance/:id
+ * Supprimer une maintenance
+ */
+router.delete('/maintenance/:id', [
+  param('id').isInt().withMessage('ID doit être un entier')
+], adminController.deleteMaintenance);
+
 // ============================================
 // GESTION DES FEEDBACKS
 // ============================================
@@ -226,5 +257,46 @@ router.get('/feedbacks', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page doit être un entier positif'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit doit être entre 1 et 100')
 ], adminController.getFeedbacks);
+
+// // adminController.js
+
+
+// exports.updateMaintenance = async (req, res, next) => {
+//   const { id } = req.params;
+//   const { car_id, type_maintenance, description, cout, date_maintenance } = req.body;
+
+//   try {
+//     const result = await pool.query(
+//       `UPDATE maintenance 
+//        SET car_id=$1, type_maintenance=$2, description=$3, cout=$4, date_maintenance=$5 
+//        WHERE id=$6 RETURNING *`,
+//       [car_id, type_maintenance, description, cout, date_maintenance, id]
+//     );
+
+//     if (result.rows.length === 0) {
+//       return res.status(404).json({ success: false, message: 'Maintenance non trouvée' });
+//     }
+
+//     res.json({ success: true, data: result.rows[0] });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+// exports.deleteMaintenance = async (req, res, next) => {
+//   const { id } = req.params;
+
+//   try {
+//     const result = await pool.query(`DELETE FROM maintenance WHERE id=$1 RETURNING *`, [id]);
+//     if (result.rows.length === 0) {
+//       return res.status(404).json({ success: false, message: 'Maintenance non trouvée' });
+//     }
+//     res.json({ success: true, message: 'Maintenance supprimée' });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+
 
 module.exports = router;

@@ -54,7 +54,8 @@
 
 /* Tabs */
 .tabs-section {
-  margin-bottom: 25px;
+  position: relative;
+  margin-bottom: 60px;
 }
 
 .tabs {

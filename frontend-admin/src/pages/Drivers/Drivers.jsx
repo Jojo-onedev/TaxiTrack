@@ -1,27 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout/Layout';
 import driverService from '../../services/driverService';
+import vehicleService from '../../services/vehicleService';
 import './Drivers.css';
 
 const Drivers = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 10;
+
   const [pagination, setPagination] = useState({
     current_page: 1,
-    per_page: 10,
+    per_page: itemsPerPage,
     total: 0,
-    total_pages: 0
+    total_pages: 0,
   });
-  const itemsPerPage = 10;
+
+
+  const [cars, setCars] = useState([]);
 
   useEffect(() => {
     fetchDrivers();
   }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    fetchCars();
+
+  }, []);
+
+  const fetchCars = async () => {
+    try {
+      const result = await vehicleService.getVehicles({ limit: 500 });
+      if (result.success) {
+        setCars(result.data.cars || result.data || []);
+      }
+    } catch (err) {
+      console.error('Error loading cars:', err);
+    }
+  };
 
   const fetchDrivers = async () => {
     try {
@@ -31,63 +55,94 @@ const Drivers = () => {
       const result = await driverService.getDrivers({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm
+        search: searchTerm,
       });
 
       if (result.success) {
         setDrivers(result.data.drivers || []);
-        setPagination(result.data.pagination || {
-          current_page: currentPage,
-          per_page: itemsPerPage,
-          total: 0,
-          total_pages: 0
-        });
+        setPagination(
+          result.data.pagination || {
+            current_page: currentPage,
+            per_page: itemsPerPage,
+            total: 0,
+            total_pages: 0,
+          }
+        );
       } else {
-        setError(result.error || 'Erreur lors de la récupération des chauffeurs');
+        setError(result.error || 'Error fetching drivers');
       }
 
       setLoading(false);
     } catch (err) {
-      console.error('Erreur:', err);
-      setError('Une erreur est survenue');
+      console.error('Error:', err);
+      setError('An error occurred');
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce chauffeur ?')) return;
+    if (!window.confirm('Are you sure you want to delete this driver?')) return;
 
     try {
       const result = await driverService.deleteDriver(id);
-      
+
       if (result.success) {
-        alert('Chauffeur supprimé avec succès!');
-        fetchDrivers(); // Rafraîchir la liste
+        alert('Driver deleted successfully!');
+
+        if (drivers.length === 1 && currentPage > 1) {
+          setCurrentPage((p) => p - 1);
+        } else {
+          fetchDrivers();
+        }
       } else {
-        alert('Erreur: ' + result.error);
+        alert('Error: ' + (result.error || 'Delete failed'));
       }
-    } catch (error) {
-      console.error('Erreur:', error);
-      alert('Erreur lors de la suppression du chauffeur');
+    } catch (err) {
+      console.error('Error:', err);
+      alert('Error deleting driver');
     }
   };
 
-  const handleEdit = (id) => {
-    navigate(`/drivers/edit/${id}`);
+  const totalPages = pagination.total_pages || 0;
+
+  const formatDate = (value) => {
+    if (!value) return '-';
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? String(value) : d.toISOString().slice(0, 10);
   };
 
-  const handleView = (driver) => {
-    alert(`Détails du chauffeur:\n\nNom: ${driver.nom} ${driver.prenom}\nEmail: ${driver.email}\nTéléphone: ${driver.telephone}`);
+
+  const carLabelById = useMemo(() => {
+    const map = new Map();
+    cars.forEach((car) => {
+      const id = car.id;
+      const model = car.nom_modele || car.nommodele || '';
+      const plate = car.plaque_immatriculation || car.plaqueimmatriculation || '';
+      const label = [model, plate].filter(Boolean).join(' - ') || `Car #${id}`;
+      map.set(String(id), label);
+    });
+    return map;
+  }, [cars]);
+
+  const getCarLabel = (driver) => {
+    if (driver?.car) {
+      const model = driver.car.nom_modele || driver.car.nommodele || '';
+      const plate = driver.car.plaque_immatriculation || driver.car.plaqueimmatriculation || '';
+      const joined = [model, plate].filter(Boolean).join(' - ');
+      if (joined) return joined;
+    }
+    if (!driver?.car_id) return '-';
+    return carLabelById.get(String(driver.car_id)) || '-';
   };
+
+  const displayedDrivers = useMemo(() => drivers, [drivers]);
 
   if (loading) {
     return (
       <Layout>
         <div className="drivers-page">
-          <div className="loading">
-            <i className="fas fa-spinner fa-spin"></i>
-            <p>Chargement des données...</p>
-          </div>
+          <div className="loading">Loading...</div>
         </div>
       </Layout>
     );
@@ -98,11 +153,8 @@ const Drivers = () => {
       <Layout>
         <div className="drivers-page">
           <div className="error-message">
-            <i className="fas fa-exclamation-triangle"></i>
-            <p>{error}</p>
-            <button onClick={fetchDrivers} className="btn-retry">
-              <i className="fas fa-redo"></i> Réessayer
-            </button>
+            {error}
+            <button onClick={fetchDrivers} className="btn-retry">Retry</button>
           </div>
         </div>
       </Layout>
@@ -112,129 +164,74 @@ const Drivers = () => {
   return (
     <Layout>
       <div className="drivers-page">
-        {/* Header */}
         <div className="page-header">
-          <div>
-            <h1 className="page-title">Drivers List</h1>
-          </div>
+          <h1>Drivers List</h1>
           <button className="btn-add" onClick={() => navigate('/drivers/add')}>
             + Add Driver
           </button>
         </div>
 
-        {/* Filters Bar */}
-        <div className="filters-bar">
-          <div className="tabs">
-            <button className="tab active">Employee List ({pagination.total})</button>
-          </div>
-          
-          <div className="filters-right">
-            <div className="search-box">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
-                placeholder="Search by name, email, phone..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1); // Reset à la page 1 lors d'une recherche
-                }}
-              />
-            </div>
-            <button className="filter-btn" onClick={fetchDrivers}>
-              🔄 Refresh
-            </button>
-          </div>
+        <div className="search-container">
+          <input
+            className="search-input"
+            placeholder="Search driver..."
+            value={searchTerm}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setSearchTerm(e.target.value);
+            }}
+          />
         </div>
 
-        {/* Table */}
         <div className="table-container">
           <table className="modern-table">
             <thead>
               <tr>
-                <th>
-                  <input type="checkbox" />
-                </th>
-                <th>Employee ID</th>
-                <th>Name of Employee</th>
+                <th>ID</th>
+                <th>Last name</th>
+                <th>First name</th>
                 <th>Email</th>
-                <th>Mobile Numero</th>
-                <th>Assigned Car</th>
+                <th>Phone</th>
                 <th>CNIB</th>
-                <th>Joining Date</th>
-                <th>Status</th>
+                <th>Residence</th>
+                <th>Start date</th>
+                <th>Car</th>
                 <th>Action</th>
               </tr>
             </thead>
+
             <tbody>
-              {drivers.length === 0 ? (
+              {displayedDrivers.length === 0 ? (
                 <tr>
-                  <td colSpan="10" className="no-data-cell">
-                    Aucun chauffeur trouvé
-                  </td>
+                  <td colSpan="10" className="no-data-cell">No drivers found</td>
                 </tr>
               ) : (
-                drivers.map((driver, index) => (
+                displayedDrivers.map((driver) => (
                   <tr key={driver.user_id}>
-                    <td>
-                      <input type="checkbox" />
-                    </td>
-                    <td>
-                      <span className="employee-id">
-                        {String(driver.user_id).padStart(6, '0')}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="employee-name">
-                        <div className="employee-avatar">
-                          {driver.nom?.charAt(0)}{driver.prenom?.charAt(0)}
-                        </div>
-                        <span>{driver.nom} {driver.prenom}</span>
-                      </div>
-                    </td>
-                    <td>{driver.email}</td>
-                    <td>{driver.telephone}</td>
-                    <td>
-                      {driver.car_model ? (
-                        <span className="badge badge-success">
-                          {driver.car_model} - {driver.car_plate}
-                        </span>
-                      ) : (
-                        <span className="badge badge-secondary">Non assigné</span>
-                      )}
-                    </td>
+                    <td>{String(driver.user_id).padStart(6, '0')}</td>
+                    <td>{driver.nom || '-'}</td>
+                    <td>{driver.prenom || '-'}</td>
+                    <td>{driver.email || '-'}</td>
+                    <td>{driver.telephone || '-'}</td>
                     <td>{driver.cnib || '-'}</td>
-                    <td>
-                      {driver.created_at 
-                        ? new Date(driver.created_at).toLocaleDateString('fr-FR')
-                        : '-'
-                      }
-                    </td>
-                    <td>
-                      <span className="status-badge active">Active</span>
-                    </td>
-                    <td>
+                    <td>{driver.lieu_residence || '-'}</td>
+                    <td>{formatDate(driver.date_entree)}</td>
+                    <td>{getCarLabel(driver)}</td>
+
+                    <td className="action-cell">
                       <div className="action-buttons">
-                        <button 
-                          className="action-btn view" 
-                          title="View"
-                          onClick={() => handleView(driver)}
+                        <button
+                          className="btn-action edit"
+                          onClick={() => navigate(`/drivers/edit/${driver.user_id}`)}
                         >
-                          👁️
+                          Edit
                         </button>
-                        <button 
-                          className="action-btn edit" 
-                          title="Edit"
-                          onClick={() => handleEdit(driver.user_id)}
-                        >
-                          ✏️
-                        </button>
-                        <button 
-                          className="action-btn delete" 
-                          title="Delete"
+
+                        <button
+                          className="btn-action delete"
                           onClick={() => handleDelete(driver.user_id)}
                         >
-                          🗑️
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -245,33 +242,32 @@ const Drivers = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        {pagination.total_pages > 1 && (
+        {totalPages > 1 && (
           <div className="pagination">
             <button
               className="page-btn"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
             >
-              ‹
+              Prev
             </button>
-            
-            {[...Array(pagination.total_pages)].map((_, i) => (
+
+            {[...Array(totalPages)].map((_, i) => (
               <button
                 key={i + 1}
-                className={`page-btn ${currentPage === i + 1 ? 'active' : ''}`}
+                className={`page-btn ${currentPage === i + 1 ? 'active' : ''}`} // ✅ tu voulais enlever couleur: on enlève juste la classe active
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
-            
+
             <button
               className="page-btn"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.total_pages))}
-              disabled={currentPage === pagination.total_pages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
             >
-              ›
+              Next
             </button>
           </div>
         )}

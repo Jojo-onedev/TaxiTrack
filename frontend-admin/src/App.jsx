@@ -196,6 +196,11 @@ export default function App() {
 
         {/* Route 404 */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+        {/* <Route path="/drivers" element={<Drivers />} /> */}
+<Route path="/drivers/add" element={<DriverForm />} />
+<Route path="/drivers/edit/:id" element={<DriverForm />} />
+
       </Routes>
     </BrowserRouter>
   );

@@ -41,6 +41,9 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
+
 // Route de base
 app.get('/', (req, res) => {
   res.json({
@@ -87,6 +90,9 @@ app.use('*', (req, res) => {
     message: 'Route non trouvée'
   });
 });
+
+const maintenanceRoutes = require('./routes/maintenance');
+app.use('/api/admin/maintenance', maintenanceRoutes); // <- ici !
 
 // Middleware de gestion des erreurs
 app.use(errorHandler);
