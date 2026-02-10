@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaSearch, FaSyncAlt, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import clientService from '../../services/clientService';
 import './Clients.css';
 
@@ -29,6 +31,9 @@ const Clients = () => {
     total: 0,
     total_pages: 0,
   });
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
 
   useEffect(() => {
     fetchClients();
@@ -84,14 +89,19 @@ const Clients = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce client?')) return;
+  const handleDeleteClick = (id) => {
+    setClientToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!clientToDelete) return;
 
     try {
-      const result = await clientService.deleteClient(id);
+      const result = await clientService.deleteClient(clientToDelete);
 
       if (result.success) {
-        alert('Client supprimé avec succès!');
+        toast.success('Client supprimé avec succès !');
         if (clients.length === 1 && currentPage > 1) {
           setCurrentPage((p) => p - 1);
         } else {
@@ -99,11 +109,13 @@ const Clients = () => {
         }
         fetchStats();
       } else {
-        alert(result.error || 'Erreur lors de la suppression');
+        toast.error(result.error || 'Erreur lors de la suppression');
       }
     } catch (err) {
       console.error('Erreur:', err);
-      alert('Erreur lors de la suppression du client');
+      toast.error('Erreur lors de la suppression du client');
+    } finally {
+      setClientToDelete(null);
     }
   };
 
@@ -253,7 +265,7 @@ const Clients = () => {
                         </button>
                         <button
                           className="action-btn delete"
-                          onClick={() => handleDelete(client.user_id)}
+                          onClick={() => handleDeleteClick(client.user_id)}
                         >
                           Supprimer
                         </button>
@@ -296,6 +308,14 @@ const Clients = () => {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Supprimer le client"
+        message="Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        type="danger"
+      />
     </Layout>
   );
 };

@@ -10,12 +10,28 @@ import Vehicles from './pages/Vehicles/Vehicles';
 import VehicleForm from './pages/Vehicles/VehicleForm';
 import Clients from './pages/Clients/Clients';
 import Maintenance from './pages/Maintenance/Maintenance';
+import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/ProtectedRoute';
 
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-glass)',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontWeight: '500',
+            boxShadow: 'var(--shadow-premium)',
+          },
+        }}
+      />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />

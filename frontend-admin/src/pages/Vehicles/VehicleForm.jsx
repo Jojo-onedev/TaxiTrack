@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
+import toast from 'react-hot-toast';
 import vehicleService from '../../services/vehicleService';
 import './VehicleForm.css';
 
@@ -62,10 +63,10 @@ const VehicleForm = () => {
       : await vehicleService.createVehicle(apiData);
 
     if (result.success) {
-      alert(isEditMode ? 'Véhicule mis à jour !' : 'Véhicule ajouté !');
+      toast.success(isEditMode ? 'Véhicule mis à jour !' : 'Véhicule ajouté !');
       navigate('/vehicles');
     } else {
-      alert('Erreur: ' + result.error);
+      toast.error('Erreur: ' + result.error);
     }
   };
 

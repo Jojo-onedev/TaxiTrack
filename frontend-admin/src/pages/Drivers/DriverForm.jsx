@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
+import toast from 'react-hot-toast';
 import driverService from '../../services/driverService';
 import vehicleService from '../../services/vehicleService';
 import './DriverForm.css';
@@ -106,10 +107,10 @@ const DriverForm = () => {
     setLoading(false);
 
     if (result.success) {
-      alert(isEditMode ? 'Chauffeur mis à jour !' : 'Chauffeur ajouté !');
+      toast.success(isEditMode ? 'Chauffeur mis à jour !' : 'Chauffeur ajouté !');
       navigate('/drivers');
     } else {
-      alert('Erreur: ' + result.error);
+      toast.error('Erreur: ' + result.error);
     }
   };
 

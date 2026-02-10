@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaSearch, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import vehicleService from '../../services/vehicleService';
 import './Vehicles.css';
 
@@ -32,6 +34,9 @@ const Vehicles = () => {
     plaque_immatriculation: '',
     status: 'active',
   });
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState(null);
 
   useEffect(() => {
     fetchVehicles();
@@ -71,25 +76,32 @@ const Vehicles = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this vehicle?')) return;
+  const handleDeleteClick = (id) => {
+    setVehicleToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!vehicleToDelete) return;
 
     try {
-      const result = await vehicleService.deleteVehicle(id);
+      const result = await vehicleService.deleteVehicle(vehicleToDelete);
 
       if (result.success) {
-        alert('Vehicle deleted successfully!');
+        toast.success('Véhicule supprimé avec succès !');
         if (vehicles.length === 1 && currentPage > 1) {
           setCurrentPage((p) => p - 1);
         } else {
           fetchVehicles();
         }
       } else {
-        alert('Error: ' + result.error);
+        toast.error('Erreur: ' + result.error);
       }
     } catch (err) {
       console.error('Erreur:', err);
-      alert('Error deleting vehicle');
+      toast.error('Erreur lors de la suppression du véhicule');
+    } finally {
+      setVehicleToDelete(null);
     }
   };
 
@@ -116,16 +128,16 @@ const Vehicles = () => {
       const result = await vehicleService.updateVehicle(editingVehicle.id, formData);
 
       if (result.success) {
-        alert('Vehicle updated successfully!');
+        toast.success('Véhicule mis à jour avec succès !');
         setShowModal(false);
         setEditingVehicle(null);
         fetchVehicles();
       } else {
-        alert('Error: ' + (result.error || 'Update failed'));
+        toast.error('Erreur: ' + (result.error || 'La mise à jour a échoué'));
       }
     } catch (err) {
       console.error('Erreur:', err);
-      alert('Error updating vehicle');
+      toast.error('Erreur lors de la mise à jour du véhicule');
     }
   };
 
@@ -238,7 +250,7 @@ const Vehicles = () => {
 
                         <button
                           className="action-btn delete"
-                          onClick={() => handleDelete(vehicle.id)}
+                          onClick={() => handleDeleteClick(vehicle.id)}
                         >
                           Supprimer
                         </button>
@@ -340,6 +352,14 @@ const Vehicles = () => {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Supprimer le véhicule"
+        message="Êtes-vous sûr de vouloir supprimer ce véhicule ? Cette action est irréversible."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        type="danger"
+      />
     </Layout>
   );
 };

@@ -4,6 +4,8 @@ import { FaSearch, FaPlus, FaFilter, FaUserFriends } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import driverService from '../../services/driverService';
 import vehicleService from '../../services/vehicleService';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './Drivers.css';
 
 const Drivers = () => {
@@ -24,6 +26,9 @@ const Drivers = () => {
     total: 0,
     total_pages: 0,
   });
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState(null);
 
 
   const [cars, setCars] = useState([]);
@@ -80,14 +85,19 @@ const Drivers = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Supprimer ce chauffeur ?')) return;
+  const handleDeleteClick = (id) => {
+    setDriverToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!driverToDelete) return;
 
     try {
-      const result = await driverService.deleteDriver(id);
+      const result = await driverService.deleteDriver(driverToDelete);
 
       if (result.success) {
-        alert('Driver deleted successfully!');
+        toast.success('Chauffeur supprimé avec succès !');
 
         if (drivers.length === 1 && currentPage > 1) {
           setCurrentPage((p) => p - 1);
@@ -95,11 +105,13 @@ const Drivers = () => {
           fetchDrivers();
         }
       } else {
-        alert('Error: ' + (result.error || 'Delete failed'));
+        toast.error('Erreur: ' + (result.error || 'La suppression a échoué'));
       }
     } catch (err) {
       console.error('Error:', err);
-      alert('Error deleting driver');
+      toast.error('Une erreur est survenue lors de la suppression');
+    } finally {
+      setDriverToDelete(null);
     }
   };
 
@@ -243,7 +255,7 @@ const Drivers = () => {
 
                         <button
                           className="action-btn delete"
-                          onClick={() => handleDelete(driver.user_id)}
+                          onClick={() => handleDeleteClick(driver.user_id)}
                         >
                           Supprimer
                         </button>

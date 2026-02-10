@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaTools, FaCalendarAlt, FaMoneyBillWave, FaCalculator, FaTimes, FaSearch, FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import maintenanceService from '../../services/maintenanceService';
 import vehicleService from '../../services/vehicleService';
 import './Maintenance.css';
@@ -29,6 +31,8 @@ const Maintenance = () => {
     cout: '',
     date_maintenance: ''
   });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [maintenanceToDelete, setMaintenanceToDelete] = useState(null);
   const itemsPerPage = 10;
 
   const fetchData = async () => {
@@ -76,7 +80,7 @@ const Maintenance = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.car_id || !formData.type_maintenance || !formData.cout || !formData.date_maintenance) {
-      alert('⚠️ Champs obligatoires manquants');
+      toast.error('⚠️ Champs obligatoires manquants');
       return;
     }
 
@@ -94,29 +98,36 @@ const Maintenance = () => {
         : await maintenanceService.createMaintenance(submitData);
 
       if (result.success) {
-        alert(editingId ? 'Modifié !' : 'Ajouté !');
+        toast.success(editingId ? 'Modifié avec succès !' : 'Ajouté avec succès !');
         setShowModal(false);
         fetchData();
       } else {
-        alert('Erreur: ' + result.error);
+        toast.error('Erreur: ' + result.error);
       }
     } catch (err) {
-      alert('Erreur: ' + err.message);
+      toast.error('Erreur: ' + err.message);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Confirmer suppression ?')) {
-      try {
-        const result = await maintenanceService.deleteMaintenance(id);
-        if (result.success) {
-          fetchData();
-        } else {
-          alert('Erreur suppression: ' + result.error);
-        }
-      } catch (err) {
-        alert('❌ Erreur suppression: ' + err.message);
+  const handleDeleteClick = (id) => {
+    setMaintenanceToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!maintenanceToDelete) return;
+    try {
+      const result = await maintenanceService.deleteMaintenance(maintenanceToDelete);
+      if (result.success) {
+        toast.success('Maintenance supprimée avec succès !');
+        fetchData();
+      } else {
+        toast.error('Erreur suppression: ' + result.error);
       }
+    } catch (err) {
+      toast.error('Erreur lors de la suppression');
+    } finally {
+      setMaintenanceToDelete(null);
     }
   };
 
@@ -232,7 +243,7 @@ const Maintenance = () => {
                         <button className="action-btn edit" onClick={() => openModal(m)}>
                           Modifier
                         </button>
-                        <button className="action-btn delete" onClick={() => handleDelete(m.id)}>
+                        <button className="action-btn delete" onClick={() => handleDeleteClick(m.id)}>
                           Supprimer
                         </button>
                       </div>
@@ -347,6 +358,15 @@ const Maintenance = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Supprimer la maintenance"
+        message="Êtes-vous sûr de vouloir supprimer cet enregistrement de maintenance ?"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        type="danger"
+      />
     </Layout>
   );
 };
