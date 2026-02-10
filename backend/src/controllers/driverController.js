@@ -113,7 +113,7 @@ const getAvailableRides = async (req, res, next) => {
  */
 const acceptRide = async (req, res, next) => {
   const client = await pool.connect();
-  
+
   try {
     const driverId = req.user.id;
     const rideId = req.params.id;
@@ -155,34 +155,35 @@ const acceptRide = async (req, res, next) => {
 
     const ride = result.rows[0];
 
-    // Récupérer les infos du chauffeur pour la notification
-const driverInfo = await pool.query(
-  `SELECT dp.nom, dp.prenom, dp.telephone, 
-          c.nom_modele, c.plaque_immatriculation
-   FROM driver_profiles dp
-   LEFT JOIN cars c ON dp.car_id = c.id
-   WHERE dp.user_id = $1`,
-  [driverId]
-);
+    // Récupérer les infos du chauffeur pour la notification (Utiliser POOL car hors transaction maintenant)
+    const driverInfo = await pool.query(
+      `SELECT dp.nom, dp.prenom, dp.telephone, 
+              c.nom_modele, c.plaque_immatriculation
+       FROM driver_profiles dp
+       LEFT JOIN cars c ON dp.car_id = c.id
+       WHERE dp.user_id = $1`,
+      [driverId]
+    );
 
-const driver = driverInfo.rows[0];
+    const driver = driverInfo.rows[0];
 
-// Notifier le client via Socket.io
-const io = req.io;
-io.to(`user_${ride.client_id}`).emit('ride_accepted', {
-  ride_id: ride.id,
-  driver: {
-    name: `${driver.prenom} ${driver.nom}`,
-    phone: driver.telephone,
-    car: {
-      model: driver.nom_modele,
-      plate: driver.plaque_immatriculation
+    // Notifier le client via Socket.io
+    const io = req.io;
+    if (io && driver) {
+      io.to(`user_${ride.client_id}`).emit('ride_accepted', {
+        ride_id: ride.id,
+        driver: {
+          name: `${driver.prenom || ''} ${driver.nom || ''}`.trim() || 'Un chauffeur',
+          phone: driver.telephone,
+          car: {
+            model: driver.nom_modele,
+            plate: driver.plaque_immatriculation
+          }
+        },
+        message: 'Un chauffeur a accepté votre course !'
+      });
+      console.log(`📢 Client ${ride.client_id} notifié : chauffeur accepté`);
     }
-  },
-  message: 'Un chauffeur a accepté votre course !'
-});
-
-console.log(`📢 Client ${ride.client_id} notifié : chauffeur accepté`);
 
     res.json({
       success: true,
@@ -262,21 +263,21 @@ const updateRideStatus = async (req, res, next) => {
     const ride = result.rows[0];
 
     // Notifier le client du changement de statut
-const io = req.io;
-const messages = {
-  'arrived': 'Votre chauffeur est arrivé au point de départ !',
-  'in_progress': 'Votre trajet a commencé',
-  'completed': 'Votre trajet est terminé. Merci d\'avoir utilisé TaxiTrack !'
-};
+    const io = req.io;
+    const messages = {
+      'arrived': 'Votre chauffeur est arrivé au point de départ !',
+      'in_progress': 'Votre trajet a commencé',
+      'completed': 'Votre trajet est terminé. Merci d\'avoir utilisé TaxiTrack !'
+    };
 
-io.to(`user_${ride.client_id}`).emit('status_changed', {
-  ride_id: ride.id,
-  status: status,
-  message: messages[status] || 'Statut de la course mis à jour',
-  updated_at: ride.updated_at
-});
+    io.to(`user_${ride.client_id}`).emit('status_changed', {
+      ride_id: ride.id,
+      status: status,
+      message: messages[status] || 'Statut de la course mis à jour',
+      updated_at: ride.updated_at
+    });
 
-console.log(`📢 Client ${ride.client_id} notifié : statut ${status}`);
+    console.log(`📢 Client ${ride.client_id} notifié : statut ${status}`);
 
     res.json({
       success: true,
@@ -285,6 +286,17 @@ console.log(`📢 Client ${ride.client_id} notifié : statut ${status}`);
         ride: {
           id: ride.id,
           status: ride.status,
+          pickup: {
+            address: ride.depart_address,
+            lat: parseFloat(ride.depart_lat),
+            long: parseFloat(ride.depart_long)
+          },
+          destination: {
+            address: ride.dest_address,
+            lat: parseFloat(ride.dest_lat),
+            long: parseFloat(ride.dest_long)
+          },
+          price: parseFloat(ride.prix),
           updated_at: ride.updated_at,
           completed_at: ride.completed_at
         }
@@ -335,8 +347,8 @@ const getDriverStats = async (req, res, next) => {
     res.json({
       success: true,
       data: {
-        earned_today: parseFloat(todayEarnings.rows[0].earned_today),
-        rating: parseFloat(avgRating.rows[0].rating).toFixed(1),
+        total_earnings: parseFloat(todayEarnings.rows[0].earned_today), // Renamed for frontend compatibility
+        average_rating: parseFloat(avgRating.rows[0].rating).toFixed(1), // Renamed for frontend compatibility
         total_rides: parseInt(totalRides.rows[0].total)
       }
     });
@@ -395,15 +407,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Rayon de la Terre en km
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-  
-  const a = 
+
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
-  
+
   return distance;
 }
 
@@ -411,11 +423,94 @@ function toRad(degrees) {
   return degrees * (Math.PI / 180);
 }
 
+/**
+ * GET /api/driver/rides/history
+ * Récupérer l'historique des courses terminées
+ */
+const getDriverRideHistory = async (req, res, next) => {
+  try {
+    const driverId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(
+      `SELECT 
+        r.id, r.depart_address, r.dest_address,
+        r.prix, r.created_at, r.completed_at, r.status,
+        cp.nom, cp.prenom
+       FROM rides r
+       JOIN client_profiles cp ON r.client_id = cp.user_id
+       WHERE r.driver_id = $1
+       AND r.status IN ('completed', 'cancelled')
+       ORDER BY r.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [driverId, limit, offset]
+    );
+
+    const rides = result.rows.map(ride => ({
+      id: ride.id,
+      client_name: `${ride.prenom} ${ride.nom}`,
+      pickup: ride.depart_address,
+      destination: ride.dest_address,
+      price: parseFloat(ride.prix),
+      date: ride.created_at,
+      status: ride.status
+    }));
+
+    res.json({
+      success: true,
+      data: { rides }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/driver/earnings/history
+ * Récupérer l'historique des gains (par jour)
+ */
+const getDriverEarningsHistory = async (req, res, next) => {
+  try {
+    const driverId = req.user.id;
+
+    // Gains par jour sur les 30 derniers jours
+    const result = await pool.query(
+      `SELECT 
+        DATE(completed_at) as date,
+        SUM(prix) as total_amount,
+        COUNT(*) as total_rides
+       FROM rides
+       WHERE driver_id = $1 
+       AND status = 'completed'
+       AND completed_at >= CURRENT_DATE - INTERVAL '30 days'
+       GROUP BY DATE(completed_at)
+       ORDER BY DATE(completed_at) DESC`,
+      [driverId]
+    );
+
+    const earnings = result.rows.map(row => ({
+      date: row.date,
+      amount: parseFloat(row.total_amount),
+      rides_count: parseInt(row.total_rides)
+    }));
+
+    res.json({
+      success: true,
+      data: { earnings }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   updateOnlineStatus,
   getAvailableRides,
   acceptRide,
   updateRideStatus,
   getDriverStats,
-  getDriverCar
+  getDriverCar,
+  getDriverRideHistory,
+  getDriverEarningsHistory
 };

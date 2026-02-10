@@ -7,7 +7,7 @@ const pool = require('../config/database');
 
 const requestRide = async (req, res, next) => {
   const client = await pool.connect();
-  
+
   try {
     const clientId = req.user.id;
 
@@ -18,13 +18,13 @@ const requestRide = async (req, res, next) => {
     );
     const profile = profileResult.rows[0];
 
-    const { 
-      pickup_address, 
-      pickup_lat, 
-      pickup_long, 
-      dest_address, 
-      dest_lat, 
-      dest_long 
+    const {
+      pickup_address,
+      pickup_lat,
+      pickup_long,
+      dest_address,
+      dest_lat,
+      dest_long
     } = req.body;
 
     // Vérifier qu'il n'y a pas déjà une course active pour ce client
@@ -42,9 +42,9 @@ const requestRide = async (req, res, next) => {
       });
     }
 
-    // Calculer le prix estimé
+    // Calculer le prix estimé (Prix fixe de 5000 CFA pour test)
     const distance = calculateDistance(pickup_lat, pickup_long, dest_lat, dest_long);
-    const estimatedPrice = 500 + (distance * 200);
+    const estimatedPrice = 5000;
 
     // Créer la course
     const result = await client.query(
@@ -151,6 +151,75 @@ const getActiveRide = async (req, res, next) => {
         success: true,
         data: null,
         message: 'Aucune course active'
+      });
+    }
+
+    const ride = result.rows[0];
+
+    res.json({
+      success: true,
+      data: {
+        ride: {
+          id: ride.id,
+          status: ride.status,
+          pickup: {
+            address: ride.depart_address,
+            lat: parseFloat(ride.depart_lat),
+            long: parseFloat(ride.depart_long)
+          },
+          destination: {
+            address: ride.dest_address,
+            lat: parseFloat(ride.dest_lat),
+            long: parseFloat(ride.dest_long)
+          },
+          price: parseFloat(ride.prix),
+          driver: ride.driver_id ? {
+            name: `${ride.driver_prenom} ${ride.driver_nom}`,
+            phone: ride.driver_telephone,
+            car: {
+              model: ride.car_model,
+              plate: ride.car_plate
+            }
+          } : null,
+          created_at: ride.created_at,
+          updated_at: ride.updated_at
+        }
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/client/rides/:id
+ * Récupérer les détails d'une course spécifique
+ */
+const getRideById = async (req, res, next) => {
+  try {
+    const clientId = req.user.id;
+    const rideId = req.params.id;
+
+    const result = await pool.query(
+      `SELECT 
+        r.*,
+        dp.nom as driver_nom, 
+        dp.prenom as driver_prenom,
+        dp.telephone as driver_telephone,
+        c.nom_modele as car_model,
+        c.plaque_immatriculation as car_plate
+       FROM rides r
+       LEFT JOIN driver_profiles dp ON r.driver_id = dp.user_id
+       LEFT JOIN cars c ON dp.car_id = c.id
+       WHERE r.id = $1 AND r.client_id = $2`,
+      [rideId, clientId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course non trouvée'
       });
     }
 
@@ -323,15 +392,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Rayon de la Terre en km
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-  
-  const a = 
+
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
-  
+
   return distance;
 }
 
@@ -364,11 +433,11 @@ const cancelRide = async (req, res, next) => {
 
     const ride = rideCheck.rows[0];
 
-    // Vérifier que la course peut être annulée (seulement pending ou accepted)
-    if (!['pending', 'accepted'].includes(ride.status)) {
+    // Vérifier que la course peut être annulée (seulement pending ou accepted, et exceptionnellement arrived/in_progress pour le débogage)
+    if (!['pending', 'accepted', 'arrived', 'in_progress'].includes(ride.status)) {
       return res.status(400).json({
         success: false,
-        message: 'Cette course ne peut plus être annulée (trajet déjà commencé ou terminé)'
+        message: 'Cette course ne peut plus être annulée (trajet déjà terminé)'
       });
     }
 
@@ -381,26 +450,13 @@ const cancelRide = async (req, res, next) => {
     );
 
     // Notifier tous les chauffeurs en ligne via Socket.io
-const io = req.io;
-io.to('drivers').emit('new_ride_request', {
-  ride_id: ride.id,
-  client: {
-    name: `${profile?.prenom || 'Client'} ${profile?.nom || ''}`.trim()
-  },
-  pickup: {
-    address: ride.depart_address,
-    lat: parseFloat(ride.depart_lat),
-    long: parseFloat(ride.depart_long)
-  },
-  destination: {
-    address: ride.dest_address,
-    lat: parseFloat(ride.dest_lat),
-    long: parseFloat(ride.dest_long)
-  },
-  price: parseFloat(ride.prix),
-  created_at: ride.created_at
-});
-console.log(`Notification envoyée aux chauffeurs pour la course ${ride.id}`);
+    if (req.io) {
+      req.io.to('drivers').emit('ride_cancelled', {
+        ride_id: ride.id,
+        message: 'Une course a été annulée par le client'
+      });
+    }
+    console.log(`Notification d'annulation envoyée pour la course ${ride.id}`);
 
     res.json({
       success: true,
@@ -419,6 +475,7 @@ console.log(`Notification envoyée aux chauffeurs pour la course ${ride.id}`);
 module.exports = {
   requestRide,
   getActiveRide,
+  getRideById,
   getRideHistory,
   rateRide,
   cancelRide

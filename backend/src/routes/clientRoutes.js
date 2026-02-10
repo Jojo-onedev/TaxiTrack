@@ -3,6 +3,7 @@ const { body, param, query } = require('express-validator');
 const {
   requestRide,
   getActiveRide,
+  getRideById,
   getRideHistory,
   rateRide,
   cancelRide
@@ -99,6 +100,22 @@ router.post(
     handleValidationErrors
   ],
   rateRide
+);
+
+/**
+ * @route   GET /api/client/rides/:id
+ * @desc    Récupérer les détails d'une course spécifique
+ * @access  Client only
+ */
+router.get(
+  '/rides/:id',
+  [
+    param('id')
+      .isInt()
+      .withMessage('ID de course invalide'),
+    handleValidationErrors
+  ],
+  getRideById
 );
 
 /**
