@@ -6,10 +6,19 @@ const createTables = async () => {
   try {
     console.log('Début de la migration des tables...\n');
 
-    // Table Users (utilisateurs : admin, client, driver)
+    // 1. Suppression des tables si elles existent (pour repartir à neuf)
+    console.log('Nettoyage de la base de données...');
+    await client.query('DROP TABLE IF EXISTS maintenance CASCADE');
+    await client.query('DROP TABLE IF EXISTS rides CASCADE');
+    await client.query('DROP TABLE IF EXISTS client_profiles CASCADE');
+    await client.query('DROP TABLE IF EXISTS driver_profiles CASCADE');
+    await client.query('DROP TABLE IF EXISTS cars CASCADE');
+    await client.query('DROP TABLE IF EXISTS users CASCADE');
+
+    // 2. Table Users (utilisateurs : admin, client, driver)
     console.log('Création de la table users...');
     await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
@@ -19,24 +28,26 @@ const createTables = async () => {
       );
     `);
 
-    // Table Cars (véhicules)
-    console.log('  Création de la table cars...');
+    // 3. Table Cars (véhicules)
+    console.log('Création de la table cars...');
     await client.query(`
-      CREATE TABLE IF NOT EXISTS cars (
+      CREATE TABLE cars (
         id SERIAL PRIMARY KEY,
         nom_modele VARCHAR(100) NOT NULL,
         plaque_immatriculation VARCHAR(50) UNIQUE NOT NULL,
         status VARCHAR(20) DEFAULT 'available' 
           CHECK (status IN ('available', 'in_use', 'maintenance')),
+        kilometrage INTEGER DEFAULT 0,
+        type_vehicule VARCHAR(50) DEFAULT 'Sedan',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
-    // Table Driver Profiles (profils chauffeurs)
-    console.log('  Création de la table driver_profiles...');
+    // 4. Table Driver Profiles (profils chauffeurs)
+    console.log('Création de la table driver_profiles...');
     await client.query(`
-      CREATE TABLE IF NOT EXISTS driver_profiles (
+      CREATE TABLE driver_profiles (
         id SERIAL PRIMARY KEY,
         user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         nom VARCHAR(100) NOT NULL,
@@ -51,10 +62,10 @@ const createTables = async () => {
       );
     `);
 
-    // Table Client Profiles (profils clients)
-    console.log('  Création de la table client_profiles...');
+    // 5. Table Client Profiles (profils clients)
+    console.log('Création de la table client_profiles...');
     await client.query(`
-      CREATE TABLE IF NOT EXISTS client_profiles (
+      CREATE TABLE client_profiles (
         id SERIAL PRIMARY KEY,
         user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         nom VARCHAR(100) NOT NULL,
@@ -66,10 +77,10 @@ const createTables = async () => {
       );
     `);
 
-    // Table Rides (courses)
-    console.log('  Création de la table rides...');
+    // 6. Table Rides (courses)
+    console.log('Création de la table rides...');
     await client.query(`
-      CREATE TABLE IF NOT EXISTS rides (
+      CREATE TABLE rides (
         id SERIAL PRIMARY KEY,
         client_id INTEGER NOT NULL REFERENCES users(id),
         driver_id INTEGER REFERENCES users(id),
@@ -90,43 +101,35 @@ const createTables = async () => {
       );
     `);
 
-    // Table Maintenance (entretien véhicules)
-    console.log('  Création de la table maintenance...');
+    // 7. Table Maintenance (entretien véhicules)
+    console.log('Création de la table maintenance...');
     await client.query(`
-      CREATE TABLE IF NOT EXISTS maintenance (
+      CREATE TABLE maintenance (
         id SERIAL PRIMARY KEY,
         car_id INTEGER NOT NULL REFERENCES cars(id) ON DELETE CASCADE,
         description TEXT NOT NULL,
-        type_panne VARCHAR(100),
+        type_maintenance VARCHAR(100),
         cout DECIMAL(10, 2) NOT NULL,
         date_maintenance DATE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
-    // Création des index pour optimiser les performances
-    console.log('  Création des index...');
+    // 8. Création des index
+    console.log('Création des index...');
     await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-      CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-      CREATE INDEX IF NOT EXISTS idx_rides_client ON rides(client_id);
-      CREATE INDEX IF NOT EXISTS idx_rides_driver ON rides(driver_id);
-      CREATE INDEX IF NOT EXISTS idx_rides_status ON rides(status);
-      CREATE INDEX IF NOT EXISTS idx_driver_profiles_car ON driver_profiles(car_id);
+      CREATE INDEX idx_users_email ON users(email);
+      CREATE INDEX idx_users_role ON users(role);
+      CREATE INDEX idx_rides_client ON rides(client_id);
+      CREATE INDEX idx_rides_driver ON rides(driver_id);
+      CREATE INDEX idx_rides_status ON rides(status);
+      CREATE INDEX idx_driver_profiles_car ON driver_profiles(car_id);
     `);
 
-    console.log('\n   Migration terminée avec succès !');
-    console.log(' Tables créées :');
-    console.log('   - users');
-    console.log('   - cars');
-    console.log('   - driver_profiles');
-    console.log('   - client_profiles');
-    console.log('   - rides');
-    console.log('   - maintenance');
-    console.log('\n Prochaine étape : npm run db:seed (optionnel - données de test)');
+    console.log('\nMigration terminée avec succès !');
 
   } catch (error) {
-    console.error(' Erreur lors de la migration:', error.message);
+    console.error('Erreur lors de la migration:', error.message);
     throw error;
   } finally {
     client.release();

@@ -1,13 +1,8 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaEdit, FaPlus, FaCar, FaTag, FaIdCard, FaChartBar, FaTimes, FaCheck, FaArrowLeft } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import vehicleService from '../../services/vehicleService';
-=======
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import Layout from '../../components/Layout/Layout';
->>>>>>> origin/frontend-admin
 import './VehicleForm.css';
 
 const VehicleForm = () => {
@@ -21,7 +16,6 @@ const VehicleForm = () => {
     statut: 'available'
   });
 
-<<<<<<< HEAD
   // Charger les données du véhicule si mode édition
   useEffect(() => {
     if (isEditMode) {
@@ -44,8 +38,6 @@ const VehicleForm = () => {
     }
   };
 
-=======
->>>>>>> origin/frontend-admin
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -53,7 +45,6 @@ const VehicleForm = () => {
     });
   };
 
-<<<<<<< HEAD
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form data:', formData);
@@ -66,7 +57,7 @@ const VehicleForm = () => {
     };
 
     // Appel API
-    const result = isEditMode 
+    const result = isEditMode
       ? await vehicleService.updateVehicle(id, apiData)
       : await vehicleService.createVehicle(apiData);
 
@@ -76,13 +67,6 @@ const VehicleForm = () => {
     } else {
       alert('Erreur: ' + result.error);
     }
-=======
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form data:', formData);
-    alert(isEditMode ? 'Vehicle updated!' : 'Vehicle added!');
-    navigate('/vehicles');
->>>>>>> origin/frontend-admin
   };
 
   return (
@@ -90,11 +74,11 @@ const VehicleForm = () => {
       <div className="vehicle-form-page">
         <div className="form-header">
           <div className="header-title">
-            <span className="form-icon">{isEditMode ? '✏️' : '➕'}</span>
+            <span className="form-icon">{isEditMode ? <FaEdit /> : <FaPlus />}</span>
             <h1>{isEditMode ? 'Edit Vehicle' : 'Add Vehicle'}</h1>
           </div>
           <button className="btn-back" onClick={() => navigate('/vehicles')}>
-            ← Back to list
+            <FaArrowLeft /> Back to list
           </button>
         </div>
 
@@ -102,13 +86,13 @@ const VehicleForm = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-section">
               <div className="section-header">
-                <span className="section-icon">🚗</span>
+                <span className="section-icon"><FaCar /></span>
                 <h3>Vehicle Information</h3>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
-                  <label>🏷️ Model Name *</label>
+                  <label><FaTag /> Model Name *</label>
                   <input
                     type="text"
                     name="nom_modele"
@@ -120,7 +104,7 @@ const VehicleForm = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>🪪 License Plate *</label>
+                  <label><FaIdCard /> License Plate *</label>
                   <input
                     type="text"
                     name="plaque_immatriculation"
@@ -134,7 +118,7 @@ const VehicleForm = () => {
               </div>
 
               <div className="form-group">
-                <label>📊 Status *</label>
+                <label><FaChartBar /> Status *</label>
                 <select
                   name="statut"
                   value={formData.statut}
@@ -150,10 +134,10 @@ const VehicleForm = () => {
 
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={() => navigate('/vehicles')}>
-                ❌ Cancel
+                <FaTimes /> Cancel
               </button>
               <button type="submit" className="btn-submit">
-                {isEditMode ? '✅ Update' : '✅ Add'}
+                {isEditMode ? <><FaCheck /> Update</> : <><FaCheck /> Add</>}
               </button>
             </div>
           </form>

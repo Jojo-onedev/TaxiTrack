@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaUsers, FaSearch, FaSyncAlt, FaEdit, FaTrash, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import clientService from '../../services/clientService';
 import './Clients.css';
@@ -117,7 +118,7 @@ const Clients = () => {
       <Layout>
         <div className="clients-page">
           <div className="loading">
-            <i className="fas fa-spinner fa-spin"></i>
+            <FaSpinner className="fa-spin" />
             <p>Chargement des données...</p>
           </div>
         </div>
@@ -130,10 +131,10 @@ const Clients = () => {
       <Layout>
         <div className="clients-page">
           <div className="error-message">
-            <i className="fas fa-exclamation-triangle"></i>
+            <FaExclamationTriangle />
             <p>{error}</p>
             <button onClick={fetchClients} className="btn-retry">
-              <i className="fas fa-redo"></i> Réessayer
+              <FaSyncAlt /> Réessayer
             </button>
           </div>
         </div>
@@ -154,7 +155,7 @@ const Clients = () => {
         <div className="stats-section">
           <div className="stat-card">
             <div className="stat-icon">
-              <i className="fas fa-users"></i>
+              <FaUsers />
             </div>
             <div className="stat-content">
               <h3>Total Clients</h3>
@@ -165,7 +166,9 @@ const Clients = () => {
 
         <div className="tabs-section">
           <div className="tabs">
-            <button className="tab active">Clients</button>
+            <button className="tab active">
+              <FaUsers className="tab-icon" /> Clients
+            </button>
           </div>
         </div>
 
@@ -174,7 +177,7 @@ const Clients = () => {
 
           <div className="header-actions">
             <div className="search-box">
-              <i className="fas fa-search"></i>
+              <FaSearch />
               <input
                 type="text"
                 placeholder="Rechercher (nom, téléphone, email...)"
@@ -187,7 +190,7 @@ const Clients = () => {
             </div>
 
             <button className="btn-refresh" onClick={fetchClients}>
-              <i className="fas fa-sync-alt"></i>
+              <FaSyncAlt />
             </button>
           </div>
         </div>
@@ -247,14 +250,14 @@ const Clients = () => {
                           title="Edit"
                           onClick={() => handleEdit(client.user_id)}
                         >
-                          <i className="fas fa-edit"></i>
+                          <FaEdit />
                         </button>
                         <button
                           className="action-btn delete"
                           title="Supprimer"
                           onClick={() => handleDelete(client.user_id)}
                         >
-                          <i className="fas fa-trash"></i>
+                          <FaTrash />
                         </button>
                       </div>
                     </td>
@@ -272,7 +275,7 @@ const Clients = () => {
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
-              <i className="fas fa-chevron-left"></i>
+              <FaChevronLeft />
             </button>
 
             {Array.from({ length: totalPages }).map((_, i) => (
@@ -290,7 +293,7 @@ const Clients = () => {
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
             >
-              <i className="fas fa-chevron-right"></i>
+              <FaChevronRight />
             </button>
           </div>
         )}

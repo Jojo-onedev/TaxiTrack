@@ -11,13 +11,13 @@ const KpiCard = ({ icon, title, value, subtitle, color, to }) => {
   };
 
   return (
-    <div 
+    <div
       className={`kpiCard kpi-${color}`}
       onClick={handleClick}
       style={{ cursor: to ? 'pointer' : 'default' }}
     >
       <div className="kpiIconWrap">
-        <div className="kpiIcon">{icon}</div>
+        {icon}
       </div>
 
       <div className="kpiMain">

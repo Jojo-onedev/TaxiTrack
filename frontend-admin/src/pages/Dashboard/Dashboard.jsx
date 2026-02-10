@@ -1,171 +1,148 @@
-import React from 'react';
-<<<<<<< HEAD
-import { FaUsers, FaCar, FaUserTie, FaTools } from 'react-icons/fa'; 
-=======
->>>>>>> origin/frontend-admin
+import React, { useEffect, useState } from 'react';
+import { FaUsers, FaCar, FaUserTie, FaTools } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import KpiCard from '../../components/KpiCard';
+import dashboardService from '../../services/dashboardService';
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area
+} from 'recharts';
 import './dashboard.css';
 
 export default function Dashboard() {
+  const [stats, setStats] = useState({
+    drivers: { overview: { total_drivers: 0 }, top_drivers: [] },
+    vehicles: { overview: { total_vehicles: 0 }, by_type: [], maintenance_needed: [] },
+    clients: { overview: { total_clients: 0 }, new_clients_trend: [] },
+    maintenance: { overview: { total_maintenances: 0 }, by_type: [] }
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    const result = await dashboardService.getAllStats();
+    if (result.success) {
+      setStats({
+        drivers: result.data.drivers || { overview: {} },
+        vehicles: result.data.vehicles || { overview: {} },
+        clients: result.data.clients || { overview: {} },
+        maintenance: result.data.maintenance || { overview: {} }
+      });
+    }
+    setLoading(false);
+  };
+
+  const clientTrendData = stats.clients.new_clients_trend?.slice(0, 7).reverse().map(item => ({
+    name: item.month.split('-')[1],
+    clients: parseInt(item.new_clients, 10)
+  })) || [];
+
+  const vehicleDistributionData = stats.vehicles.by_type?.slice(0, 5).map(item => ({
+    name: item.type_vehicule,
+    count: parseInt(item.count, 10)
+  })) || [];
+
   return (
     <Layout>
       <div className="dashboard-content">
-<<<<<<< HEAD
-        <div className="kpiGrid kpiAnimated">
-          <KpiCard
-            icon={<FaUsers className="kpi-icon" />}
-=======
         {/* KPI Cards */}
         <div className="kpiGrid kpiAnimated">
           <KpiCard
-            icon="🚕"
->>>>>>> origin/frontend-admin
+            icon={<FaUsers className="kpi-icon" />}
             title="Drivers"
-            value="281"
-            subtitle="+55% than last week"
+            value={stats.drivers.overview?.total_drivers || 0}
+            subtitle={stats.drivers.overview?.drivers_with_car ? `${stats.drivers.overview.drivers_with_car} assignés` : "Just updated"}
             color="dark"
             to="/drivers"
           />
           <KpiCard
-<<<<<<< HEAD
             icon={<FaCar className="kpi-icon" />}
-=======
-            icon="🚗"
->>>>>>> origin/frontend-admin
             title="Vehicles"
-            value="2,300"
-            subtitle="+3% than last month"
+            value={stats.vehicles.overview?.total_vehicles || 0}
+            subtitle={stats.vehicles.overview?.active_vehicles ? `${stats.vehicles.overview.active_vehicles} actifs` : "Just updated"}
             color="blue"
             to="/vehicles"
           />
           <KpiCard
-<<<<<<< HEAD
             icon={<FaUserTie className="kpi-icon" />}
-=======
-            icon="👥"
->>>>>>> origin/frontend-admin
-            title="Users"
-            value="34k"
-            subtitle="+1% than yesterday"
+            title="Clients"
+            value={stats.clients.overview?.total_clients || 0}
+            subtitle={stats.clients.overview?.active_last_30_days ? `${stats.clients.overview.active_last_30_days} actifs (30j)` : "Just updated"}
             color="green"
             to="/clients"
           />
           <KpiCard
-<<<<<<< HEAD
             icon={<FaTools className="kpi-icon" />}
-=======
-            icon="🛠️"
->>>>>>> origin/frontend-admin
             title="Maintenance"
-            value="+91"
-            subtitle="Just updated"
+            value={stats.maintenance.overview?.total_maintenances || 0}
+            subtitle={stats.maintenance.overview?.total_cost ? `${Math.round(stats.maintenance.overview.total_cost).toLocaleString()} FCFA` : "Just updated"}
             color="pink"
             to="/maintenance"
           />
-<<<<<<< HEAD
         </div>
-        
-=======
-          <KpiCard
-            icon="💬"
-            title="Feedbacks"
-            value="+91"
-            subtitle="Just updated"
-            color="feedback"
-            to="/feedback"
-          />
-        </div>
-        
+
         {/* Charts */}
->>>>>>> origin/frontend-admin
         <div className="grid2">
+          {/* Client Growth Chart */}
           <div className="panel">
             <div className="panelHead">
               <div>
-                <div className="panelTitle">Total Revenue</div>
-                <div className="panelSub">Monthly overview</div>
-              </div>
-              <div className="segmented">
-                <button className="segBtn">Day</button>
-                <button className="segBtn active">Week</button>
-                <button className="segBtn">Month</button>
+                <div className="panelTitle">New Clients Trend</div>
+                <div className="panelSub">Monthly registration overview</div>
               </div>
             </div>
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/frontend-admin
-            <div className="chartBox">
-              <div className="lineChart">
-                <div className="lineArea" />
-                <div className="lineStroke" />
-              </div>
-              <div className="chartAxis">
-<<<<<<< HEAD
-                <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
-                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
-                <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
-=======
-                <span>Sep</span>
-                <span>Oct</span>
-                <span>Nov</span>
-                <span>Dec</span>
-                <span>Jan</span>
-                <span>Feb</span>
-                <span>Mar</span>
-                <span>Apr</span>
-                <span>May</span>
-                <span>Jun</span>
-                <span>Jul</span>
-                <span>Aug</span>
->>>>>>> origin/frontend-admin
-              </div>
+            <div className="chartBox" style={{ height: '300px', marginTop: '20px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={clientTrendData}>
+                  <defs>
+                    <linearGradient id="colorClients" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-glass)', borderRadius: '12px' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                  />
+                  <Area type="monotone" dataKey="clients" stroke="var(--accent-primary)" fillOpacity={1} fill="url(#colorClients)" strokeWidth={3} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
+          {/* Vehicle Fleet Distribution */}
           <div className="panel">
             <div className="panelHead">
               <div>
-                <div className="panelTitle">Profit this week</div>
-                <div className="panelSub">Sales vs Revenue</div>
+                <div className="panelTitle">Vehicle Fleet</div>
+                <div className="panelSub">Distribution by type</div>
               </div>
-              <select className="select">
-                <option>This Week</option>
-                <option>Last Week</option>
-              </select>
             </div>
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/frontend-admin
-            <div className="chartBox">
-              <div className="barChart">
-                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                  <div className="barCol" key={d + i}>
-                    <div className="barWrap">
-<<<<<<< HEAD
-                      <div className="bar barA" style={{ height: `${30 + i * 7}%` }} />
-                      <div className="bar barB" style={{ height: `${20 + i * 5}%` }} />
-=======
-                      <div
-                        className="bar barA"
-                        style={{ height: `${30 + i * 7}%` }}
-                      />
-                      <div
-                        className="bar barB"
-                        style={{ height: `${20 + i * 5}%` }}
-                      />
->>>>>>> origin/frontend-admin
-                    </div>
-                    <div className="barLabel">{d}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="legend">
-                <span className="dot a" /> Sales
-                <span className="dot b" /> Revenue
-              </div>
+            <div className="chartBox" style={{ height: '300px', marginTop: '20px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={vehicleDistributionData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-glass)', borderRadius: '12px' }}
+                  />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                    {vehicleDistributionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'var(--accent-primary)' : 'var(--accent-secondary)'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
@@ -173,3 +150,5 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
+

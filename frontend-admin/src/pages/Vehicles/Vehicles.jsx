@@ -1,18 +1,12 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaPlus, FaSearch, FaEdit, FaTrash, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import vehicleService from '../../services/vehicleService';
-=======
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Layout from '../../components/Layout/Layout';
->>>>>>> origin/frontend-admin
 import './Vehicles.css';
 
 const Vehicles = () => {
   const navigate = useNavigate();
-<<<<<<< HEAD
 
   const [vehicles, setVehicles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -140,56 +134,21 @@ const Vehicles = () => {
   const getStatusBadge = (status) => {
     const statusMap = {
       active: { label: 'Available', class: 'status-available' },
+      available: { label: 'Available', class: 'status-available' },
       in_use: { label: 'In Use', class: 'status-in-use' },
       maintenance: { label: 'Maintenance', class: 'status-maintenance' },
       inactive: { label: 'Inactive', class: 'status-inactive' },
-=======
-  const [vehicles, setVehicles] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const handleDelete = (id) => {
-    if (!window.confirm('Are you sure you want to delete this vehicle?')) return;
-    setVehicles(vehicles.filter(v => v.id !== id));
-    alert('Vehicle deleted successfully!');
-  };
-
-  const handleEdit = (id) => {
-    navigate(`/vehicles/edit/${id}`);
-  };
-
-  // Filtrage
-  const filteredVehicles = vehicles.filter(v =>
-    v.nom_modele?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.plaque_immatriculation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.id?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredVehicles.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage);
-
-  const getStatusBadge = (status) => {
-    const statusMap = {
-      available: { label: 'Available', class: 'status-available' },
-      in_use: { label: 'In Use', class: 'status-in-use' },
-      maintenance: { label: 'Maintenance', class: 'status-maintenance' }
->>>>>>> origin/frontend-admin
     };
     const statusInfo = statusMap[status] || { label: status, class: '' };
     return <span className={`status-badge ${statusInfo.class}`}>{statusInfo.label}</span>;
   };
 
-<<<<<<< HEAD
   if (loading) {
     return (
       <Layout>
         <div className="vehicles-page">
           <div className="loading">
-            <i className="fas fa-spinner fa-spin"></i>
+            <FaSpinner className="fa-spin" />
             <p>Loading vehicles...</p>
           </div>
         </div>
@@ -202,10 +161,10 @@ const Vehicles = () => {
       <Layout>
         <div className="vehicles-page">
           <div className="error-message">
-            <i className="fas fa-exclamation-triangle"></i>
+            <FaExclamationTriangle />
             <p>{error}</p>
             <button onClick={fetchVehicles} className="btn-retry">
-              <i className="fas fa-redo"></i> Retry
+              <FaPlus /> Retry
             </button>
           </div>
         </div>
@@ -213,41 +172,29 @@ const Vehicles = () => {
     );
   }
 
-=======
->>>>>>> origin/frontend-admin
   return (
     <Layout>
       <div className="vehicles-page">
         <div className="page-header">
           <h1 className="page-title">Vehicles</h1>
           <div className="header-actions">
-<<<<<<< HEAD
-=======
-            <button className="btn-filters">
-              <i className="fas fa-filter"></i> Filters
-            </button>
->>>>>>> origin/frontend-admin
             <button className="btn-add-primary" onClick={() => navigate('/vehicles/add')}>
-              <i className="fas fa-plus"></i> Add Manually
+              <FaPlus /> Add Manually
             </button>
           </div>
         </div>
 
         <div className="search-container">
-          <i className="fas fa-search search-icon"></i>
+          <FaSearch className="search-icon" />
           <input
             type="text"
             className="search-input"
             placeholder="Search by model, license plate or ID..."
             value={searchTerm}
-<<<<<<< HEAD
             onChange={(e) => {
               setCurrentPage(1);
               setSearchTerm(e.target.value);
             }}
-=======
-            onChange={(e) => setSearchTerm(e.target.value)}
->>>>>>> origin/frontend-admin
           />
         </div>
 
@@ -263,7 +210,6 @@ const Vehicles = () => {
                 <th>Actions</th>
               </tr>
             </thead>
-<<<<<<< HEAD
 
             <tbody>
               {vehicles.length === 0 ? (
@@ -281,7 +227,6 @@ const Vehicles = () => {
                     </td>
                     <td>{getStatusBadge(vehicle.status)}</td>
 
-                    {/* ICI: Update doit ouvrir le formulaire, pas alert + navigation */}
                     <td>
                       <div className="action-buttons">
                         <button
@@ -289,7 +234,7 @@ const Vehicles = () => {
                           title="Update"
                           onClick={() => handleEdit(vehicle.id)}
                         >
-                          <i className="fas fa-edit"></i> Update
+                          <FaEdit />
                         </button>
 
                         <button
@@ -297,41 +242,7 @@ const Vehicles = () => {
                           title="Delete"
                           onClick={() => handleDelete(vehicle.id)}
                         >
-                          <i className="fas fa-trash"></i> Delete
-=======
-            <tbody>
-              {currentItems.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="no-data-cell">
-                    No vehicles found
-                  </td>
-                </tr>
-              ) : (
-                currentItems.map((vehicle) => (
-                  <tr key={vehicle.id}>
-                    <td><input type="checkbox" /></td>
-                    <td className="vehicle-id">{vehicle.id}</td>
-                    <td className="vehicle-model">{vehicle.nom_modele}</td>
-                    <td>
-                      <span className="license-plate">{vehicle.plaque_immatriculation}</span>
-                    </td>
-                    <td>{getStatusBadge(vehicle.statut)}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button 
-                          className="action-btn edit" 
-                          title="Edit"
-                          onClick={() => handleEdit(vehicle.id)}
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button 
-                          className="action-btn delete" 
-                          title="Delete"
-                          onClick={() => handleDelete(vehicle.id)}
-                        >
-                          <i className="fas fa-trash"></i>
->>>>>>> origin/frontend-admin
+                          <FaTrash />
                         </button>
                       </div>
                     </td>
@@ -346,14 +257,10 @@ const Vehicles = () => {
           <div className="pagination">
             <button
               className="page-btn"
-<<<<<<< HEAD
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-=======
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
->>>>>>> origin/frontend-admin
               disabled={currentPage === 1}
             >
-              <i className="fas fa-chevron-left"></i>
+              <FaChevronLeft />
             </button>
 
             {[...Array(totalPages)].map((_, i) => (
@@ -368,20 +275,15 @@ const Vehicles = () => {
 
             <button
               className="page-btn"
-<<<<<<< HEAD
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-=======
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
->>>>>>> origin/frontend-admin
               disabled={currentPage === totalPages}
             >
-              <i className="fas fa-chevron-right"></i>
+              <FaChevronRight />
             </button>
           </div>
         )}
-<<<<<<< HEAD
 
-        {/* MODAL UPDATE: pas de nouveau design, juste structure (mêmes classes que Drivers si tu as déjà) */}
+        {/* MODAL UPDATE */}
         {showModal && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -391,7 +293,6 @@ const Vehicles = () => {
               </div>
 
               <form onSubmit={handleUpdateSubmit} className="driver-form">
-                {/* j'utilise driver-form/form-group/form-actions si tu les as déjà dans ton projet */}
                 <div className="form-group">
                   <label>Model Name *</label>
                   <input
@@ -421,6 +322,7 @@ const Vehicles = () => {
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   >
                     <option value="active">Available</option>
+                    <option value="available">Available</option>
                     <option value="in_use">In Use</option>
                     <option value="maintenance">Maintenance</option>
                     <option value="inactive">Inactive</option>
@@ -439,8 +341,6 @@ const Vehicles = () => {
             </div>
           </div>
         )}
-=======
->>>>>>> origin/frontend-admin
       </div>
     </Layout>
   );

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaPlus, FaTools, FaCalendarAlt, FaMoneyBillWave, FaCalculator, FaEdit, FaTrash, FaTimes, FaSearch, FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
+import maintenanceService from '../../services/maintenanceService';
+import vehicleService from '../../services/vehicleService';
 import './Maintenance.css';
 
 const Maintenance = () => {
@@ -8,10 +11,10 @@ const Maintenance = () => {
   const [maintenances, setMaintenances] = useState([]);
   const [cars, setCars] = useState([]);
   const [stats, setStats] = useState({
-    totalmaintenances: 0,
-    last30days: 0,
-    totalcost: 0,
-    averagecost: 0
+    total_maintenances: 0,
+    last_30_days: 0,
+    total_cost: 0,
+    average_cost: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,53 +23,35 @@ const Maintenance = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    carid: '',
-    typemaintenance: '',
+    car_id: '',
+    type_maintenance: '',
     description: '',
     cout: '',
-    datemaintenance: ''
+    date_maintenance: ''
   });
   const itemsPerPage = 10;
-
-  // Fetch sécurisé
-  const safeFetch = async (url, options = {}) => {
-    try {
-      const res = await fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      const text = await res.text();
-      return text ? JSON.parse(text) : {};
-    } catch (err) {
-      console.error(`Fetch error ${url}:`, err);
-      throw err;
-    }
-  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Stats - adapter aux clés backend (totalmaintenances, etc.)
-      const statsData = await safeFetch('/api/admin/stats/maintenance');
-      console.log('Stats data:', statsData); // Debug
-      setStats(statsData.data || stats);
+      const [statsResult, listResult] = await Promise.all([
+        maintenanceService.getMaintenanceStats(),
+        maintenanceService.getMaintenances({ page: 1, limit: 100 })
+      ]);
 
-      // Liste - corriger pour backend qui retourne data.maintenances
-      const listData = await safeFetch('/api/admin/maintenance?page=1&limit=100');
-      console.log('List data:', listData); // Debug
-      // Backend retourne {success: true, data: {maintenances: [...]}}
-      const maintenanceList = listData.data?.maintenances || listData.data || [];
-      setMaintenances(Array.isArray(maintenanceList) ? maintenanceList : []);
+      if (statsResult.success) {
+        setStats(statsResult.data.overview || stats);
+      }
+
+      if (listResult.success) {
+        setMaintenances(listResult.data.maintenances || []);
+      } else {
+        setError(listResult.error);
+      }
     } catch (err) {
       setError(err.message);
-      setMaintenances([]);
     } finally {
       setLoading(false);
     }
@@ -74,19 +59,12 @@ const Maintenance = () => {
 
   const fetchCars = async () => {
     try {
-      const data = await safeFetch('/api/admin/cars?limit=100');
-      console.log('Cars data:', data); // Debug
-      // Backend peut retourner data.cars ou directement data
-      const carList = data.data?.cars || data.data || data.cars || [];
-      setCars(Array.isArray(carList) ? carList : []);
+      const result = await vehicleService.getVehicles({ limit: 100 });
+      if (result.success) {
+        setCars(result.data.cars || result.data || []);
+      }
     } catch (err) {
       console.error('Cars fetch error:', err);
-      // Fallback dev
-      setCars([
-        { id: 1, plaqueimmatriculation: '123 AB CD', nommodele: 'Toyota Corolla' },
-        { id: 2, plaqueimmatriculation: '456 EF GH', nommodele: 'Hyundai Accent' },
-        { id: 3, plaqueimmatriculation: '789 HI JK', nommodele: 'Peugeot 301' },
-      ]);
     }
   };
 
@@ -97,41 +75,45 @@ const Maintenance = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.carid || !formData.typemaintenance || !formData.cout || !formData.datemaintenance) {
+    if (!formData.car_id || !formData.type_maintenance || !formData.cout || !formData.date_maintenance) {
       alert('⚠️ Champs obligatoires manquants');
       return;
     }
 
     try {
       const submitData = {
-  car_id: parseInt(formData.carid, 10),
-  type_maintenance: formData.typemaintenance,
-  description: formData.description || '',
-  cout: parseInt(formData.cout, 10),
-  date_maintenance: formData.datemaintenance
-};
+        car_id: parseInt(formData.car_id, 10),
+        type_maintenance: formData.type_maintenance,
+        description: formData.description || '',
+        cout: parseFloat(formData.cout),
+        date_maintenance: formData.date_maintenance
+      };
 
+      const result = editingId
+        ? await maintenanceService.updateMaintenance(editingId, submitData)
+        : await maintenanceService.createMaintenance(submitData);
 
-
-      const method = editingId ? 'PUT' : 'POST';
-      const url = editingId ? `/api/admin/maintenance/${editingId}` : '/api/admin/maintenance';
-
-      const data = await safeFetch(url, { method, body: JSON.stringify(submitData) });
-      if (!data.success) throw new Error(data.message || 'Échec opération');
-
-      alert(editingId ? '✅ Modifié !' : '✅ Ajouté !');
-      setShowModal(false);
-      fetchData(); // Refresh
+      if (result.success) {
+        alert(editingId ? 'Modifié !' : 'Ajouté !');
+        setShowModal(false);
+        fetchData();
+      } else {
+        alert('Erreur: ' + result.error);
+      }
     } catch (err) {
-      alert('❌ Erreur: ' + err.message);
+      alert('Erreur: ' + err.message);
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm('Confirmer suppression ?')) {
+    if (window.confirm('Confirmer suppression ?')) {
       try {
-        await safeFetch(`/api/admin/maintenance/${id}`, { method: 'DELETE' });
-        fetchData();
+        const result = await maintenanceService.deleteMaintenance(id);
+        if (result.success) {
+          fetchData();
+        } else {
+          alert('Erreur suppression: ' + result.error);
+        }
       } catch (err) {
         alert('❌ Erreur suppression: ' + err.message);
       }
@@ -154,25 +136,43 @@ const Maintenance = () => {
   const openModal = (maintenance = null) => {
     if (maintenance) {
       setFormData({
-        carid: maintenance.carid || maintenance.car_id || '',
-        typemaintenance: maintenance.typemaintenance || maintenance.type_maintenance || '',
+        car_id: maintenance.carid || maintenance.car_id || '',
+        type_maintenance: maintenance.typemaintenance || maintenance.type_maintenance || '',
         description: maintenance.description || '',
         cout: maintenance.cout || '',
-        datemaintenance: maintenance.datemaintenance?.split('T')[0] || maintenance.date_maintenance?.split('T')[0] || ''
+        date_maintenance: maintenance.datemaintenance?.split('T')[0] || maintenance.date_maintenance?.split('T')[0] || ''
       });
       setEditingId(maintenance.id);
     } else {
-      setFormData({ carid: '', typemaintenance: '', description: '', cout: '', datemaintenance: '' });
+      setFormData({ car_id: '', type_maintenance: '', description: '', cout: '', date_maintenance: '' });
       setEditingId(null);
     }
     setShowModal(true);
   };
 
-  if (loading) return <div className="loading">Chargement...</div>;
+  if (loading) return (
+    <Layout>
+      <div className="maintenance-page">
+        <div className="loading">
+          <FaSpinner className="fa-spin" />
+          <p>Chargement...</p>
+        </div>
+      </div>
+    </Layout>
+  );
+
   if (error) return (
-    <div className="error">
-      Erreur: {error}. <button onClick={fetchData}>Réessayer</button>
-    </div>
+    <Layout>
+      <div className="maintenance-page">
+        <div className="error-message">
+          <FaExclamationTriangle />
+          <p>Erreur: {error}</p>
+          <button onClick={fetchData} className="btn-retry">
+            <FaSyncAlt /> Réessayer
+          </button>
+        </div>
+      </div>
+    </Layout>
   );
 
   return (
@@ -180,59 +180,26 @@ const Maintenance = () => {
       <div className="maintenance-page">
         <div className="page-header">
           <div>
-            <h1> Maintenance management</h1>
-            <p>{stats.totalmaintenances} </p>
+            <h1><FaTools /> Maintenance Management</h1>
+            <p>{stats.total_maintenances || 0} maintenance records total</p>
           </div>
           <button className="btn-add" onClick={() => openModal()}>
-            <i className="fas fa-plus"></i> New Maintenance
+            <FaPlus /> New Maintenance
           </button>
         </div>
 
-        {/* CARDS MISES À JOUR - formatage FCFA + fallback */}
-        {/* <div className="stats-grid">
-          <div className="stat-card">
-            <i className="fas fa-tools stat-icon"></i>
-            <div>
-              <h3>Total</h3>
-              <p className="stat-number">{stats.totalmaintenances || 0}</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <i className="fas fa-calendar stat-icon"></i>
-            <div>
-              <h3>30 jours</h3>
-              <p className="stat-number">{stats.last30days || 0}</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <i className="fas fa-coins stat-icon"></i>
-            <div>
-              <h3>Total coût</h3>
-              <p className="stat-number">
-                {stats.totalcost ? Math.round(stats.totalcost).toLocaleString() + ' FCFA' : '0 FCFA'}
-              </p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <i className="fas fa-calculator stat-icon"></i>
-            <div>
-              <h3>Moyenne</h3>
-              <p className="stat-number">
-                {stats.averagecost ? Math.round(stats.averagecost).toLocaleString() + ' FCFA' : '0 FCFA'}
-              </p>
-            </div>
-          </div>
-        </div> */}
-
         <div className="table-card">
           <div className="table-header">
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
+            <div className="search-box">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Rechercher par véhicule, type, description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
             <div className="table-stats">{filteredMaintenances.length} résultats</div>
           </div>
           <div className="table-container">
@@ -252,7 +219,7 @@ const Maintenance = () => {
                   <tr key={m.id}>
                     <td>
                       <div>
-                        <strong>{m.nommodele || m.nom_modele || m.car?.nommodele || '—'}</strong><br/>
+                        <strong>{m.nommodele || m.nom_modele || m.car?.nommodele || '—'}</strong><br />
                         <small>{m.plaqueimmatriculation || m.plaque_immatriculation || m.car?.plaqueimmatriculation || '—'}</small>
                       </div>
                     </td>
@@ -261,32 +228,36 @@ const Maintenance = () => {
                     <td>{m.cout ? `${parseInt(m.cout).toLocaleString()} FCFA` : '—'}</td>
                     <td>{(m.datemaintenance || m.date_maintenance)?.split('T')[0] || '—'}</td>
                     <td>
-                      <button className="btn-edit" onClick={() => openModal(m)} title="Modifier"> Update
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button className="btn-delete" onClick={() => handleDelete(m.id)} title="Supprimer">Delete
-                        <i className="fas fa-trash"></i>
-                      </button>
+                      <div className="action-buttons">
+                        <button className="action-btn edit" onClick={() => openModal(m)} title="Modifier">
+                          <FaEdit />
+                        </button>
+                        <button className="action-btn delete" onClick={() => handleDelete(m.id)} title="Supprimer">
+                          <FaTrash />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
                 {currentItems.length === 0 && (
-                  <tr><td colSpan="6" className="no-data">Aucune maintenance trouvée</td></tr>
+                  <tr><td colSpan="6" className="no-data-cell">Aucune maintenance trouvée</td></tr>
                 )}
               </tbody>
             </table>
           </div>
           {totalPages > 1 && (
             <div className="pagination">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} 
+              <button
+                className="page-btn"
+                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
               >
                 Précédent
               </button>
-              <span>Page {currentPage} sur {totalPages}</span>
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} 
+              <span className="page-info">Page {currentPage} sur {totalPages}</span>
+              <button
+                className="page-btn"
+                onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
               >
                 Suivant
@@ -301,15 +272,15 @@ const Maintenance = () => {
               <div className="modal-header">
                 <h2>{editingId ? 'Modifier' : 'Nouvelle maintenance'}</h2>
                 <button className="modal-close" onClick={() => setShowModal(false)}>
-                  <i className="fas fa-times"></i>
+                  <FaTimes />
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="maintenance-form">
                 <div className="form-group">
                   <label>Véhicule {cars.length ? `(${cars.length} disponible${cars.length !== 1 ? 's' : ''})` : ''} *</label>
-                  <select 
-                    value={formData.carid} 
-                    onChange={e => setFormData({...formData, carid: e.target.value})} 
+                  <select
+                    value={formData.car_id}
+                    onChange={e => setFormData({ ...formData, car_id: e.target.value })}
                     required
                   >
                     <option value="">Sélectionner</option>
@@ -322,9 +293,9 @@ const Maintenance = () => {
                 </div>
                 <div className="form-group">
                   <label>Type *</label>
-                  <select 
-                    value={formData.typemaintenance} 
-                    onChange={e => setFormData({...formData, typemaintenance: e.target.value})} 
+                  <select
+                    value={formData.type_maintenance}
+                    onChange={e => setFormData({ ...formData, type_maintenance: e.target.value })}
                     required
                   >
                     <option value="">Choisir</option>
@@ -337,28 +308,28 @@ const Maintenance = () => {
                 </div>
                 <div className="form-group">
                   <label>Description</label>
-                  <textarea 
-                    value={formData.description} 
-                    onChange={e => setFormData({...formData, description: e.target.value})} 
+                  <textarea
+                    value={formData.description}
+                    onChange={e => setFormData({ ...formData, description: e.target.value })}
                     rows="3"
                   />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Coût (FCFA) *</label>
-                    <input 
-                      type="number" 
-                      value={formData.cout} 
-                      onChange={e => setFormData({...formData, cout: e.target.value})} 
+                    <input
+                      type="number"
+                      value={formData.cout}
+                      onChange={e => setFormData({ ...formData, cout: e.target.value })}
                       required
                     />
                   </div>
                   <div className="form-group">
                     <label>Date *</label>
-                    <input 
-                      type="date" 
-                      value={formData.datemaintenance} 
-                      onChange={e => setFormData({...formData, datemaintenance: e.target.value})} 
+                    <input
+                      type="date"
+                      value={formData.date_maintenance}
+                      onChange={e => setFormData({ ...formData, date_maintenance: e.target.value })}
                       required
                     />
                   </div>
