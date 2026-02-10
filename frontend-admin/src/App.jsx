@@ -3,6 +3,7 @@
 
 
 
+<<<<<<< HEAD
 // import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // import Login from "./pages/Authentification/login";
 // import Dashboard from './pages/Dashboard/Dashboard';
@@ -94,17 +95,28 @@
 // }
 
 
+=======
+>>>>>>> origin/frontend-admin
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from "./pages/Authentification/login";
 import Dashboard from './pages/Dashboard/Dashboard';
 import Drivers from './pages/Drivers/Drivers';
 import DriverForm from './pages/Drivers/DriverForm';
+<<<<<<< HEAD
 import Vehicles from './pages/Vehicles/Vehicles';
 import VehicleForm from './pages/Vehicles/VehicleForm';
 import Clients from './pages/Clients/Clients';
 import Maintenance from './pages/Maintenance/Maintenance';  // ✅ CORRIGÉ
 import ProtectedRoute from './components/ProtectedRoute';
 
+=======
+import Vehicles  from './pages/Vehicles/Vehicles';
+import VehicleForm from './pages/Vehicles/VehicleForm';
+import Clients from './pages/Clients/Clients';
+import ProtectedRoute from './components/ProtectedRoute';
+
+
+>>>>>>> origin/frontend-admin
 export default function App() {
   return (
     <BrowserRouter>
@@ -121,13 +133,18 @@ export default function App() {
           } 
         />
         
+<<<<<<< HEAD
         <Route 
+=======
+        {<Route 
+>>>>>>> origin/frontend-admin
           path="/drivers" 
           element={
             <ProtectedRoute>
               <Drivers />
             </ProtectedRoute>
           } 
+<<<<<<< HEAD
         />
 
         <Route 
@@ -149,6 +166,21 @@ export default function App() {
         />
 
         <Route 
+=======
+        /> }
+
+        
+<Route 
+  path="/drivers/add" 
+  element={
+    <ProtectedRoute>
+      <DriverForm />
+    </ProtectedRoute>
+  } 
+/>
+
+    <Route 
+>>>>>>> origin/frontend-admin
           path="/vehicles" 
           element={
             <ProtectedRoute>
@@ -157,7 +189,11 @@ export default function App() {
           } 
         />
 
+<<<<<<< HEAD
         <Route 
+=======
+          <Route 
+>>>>>>> origin/frontend-admin
           path="/vehicles/add" 
           element={
             <ProtectedRoute>
@@ -165,6 +201,7 @@ export default function App() {
             </ProtectedRoute>
           } 
         />
+<<<<<<< HEAD
 
         <Route 
           path="/vehicles/:id/edit" 
@@ -175,6 +212,8 @@ export default function App() {
           } 
         />
 
+=======
+>>>>>>> origin/frontend-admin
         <Route 
           path="/clients" 
           element={
@@ -184,6 +223,7 @@ export default function App() {
           } 
         />
 
+<<<<<<< HEAD
         {/* ✅ NOUVELLE ROUTE MAINTENANCE */}
         <Route 
           path="/maintenance" 
@@ -206,3 +246,13 @@ export default function App() {
   );
 }
 
+=======
+
+      </Routes>
+
+   
+
+    </BrowserRouter>
+  );
+}
+>>>>>>> origin/frontend-admin

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../../components/Layout/Layout';
@@ -5,12 +6,28 @@ import driverService from '../../services/driverService';
 import vehicleService from '../../services/vehicleService';
 import './DriverForm.css';
 
+=======
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Layout from '../../components/Layout/Layout';
+import './DriverForm.css';
+
+const AVAILABLE_CARS = [
+  { id: 1, model_name: 'Toyota Corolla', license_plate: 'BF-1234-AB' },
+  { id: 2, model_name: 'Honda Civic', license_plate: 'BF-5678-CD' },
+  { id: 3, model_name: 'Nissan Sentra', license_plate: 'BF-9012-EF' },
+  { id: 4, model_name: 'Hyundai Elantra', license_plate: 'BF-3456-GH' },
+  { id: 5, model_name: 'Mazda 3', license_plate: 'BF-7890-IJ' },
+];
+
+>>>>>>> origin/frontend-admin
 const DriverForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState({
+<<<<<<< HEAD
     nom: '',
     prenom: '',
     email: '',
@@ -67,6 +84,17 @@ const DriverForm = () => {
     setLoading(false);
   };
 
+=======
+    last_name: '',
+    first_name: '',
+    email: '',
+    phone: '',
+    cnib: '',
+    joining_date: new Date().toISOString().split('T')[0],
+    car_id: ''
+  });
+
+>>>>>>> origin/frontend-admin
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -74,6 +102,7 @@ const DriverForm = () => {
     });
   };
 
+<<<<<<< HEAD
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -122,6 +151,17 @@ const DriverForm = () => {
     );
   }
 
+=======
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    console.log('Form data:', formData);
+    alert(isEditMode ? 'Driver updated!' : 'Driver added!');
+    
+    navigate('/drivers');
+  };
+
+>>>>>>> origin/frontend-admin
   return (
     <Layout>
       <div className="driver-form-page">
@@ -139,6 +179,7 @@ const DriverForm = () => {
               
               <div className="form-row">
                 <div className="form-group">
+<<<<<<< HEAD
                   <label>First_name *</label>
                   <input
                     type="text"
@@ -147,10 +188,21 @@ const DriverForm = () => {
                     onChange={handleChange}
                     required
                     placeholder="Nom de famille"
+=======
+                  <label>Last Name *</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter last name"
+>>>>>>> origin/frontend-admin
                   />
                 </div>
 
                 <div className="form-group">
+<<<<<<< HEAD
                   <label>Last_name *</label>
                   <input
                     type="text"
@@ -159,6 +211,16 @@ const DriverForm = () => {
                     onChange={handleChange}
                     required
                     placeholder="Prénom"
+=======
+                  <label>First Name *</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter first name"
+>>>>>>> origin/frontend-admin
                   />
                 </div>
               </div>
@@ -173,16 +235,27 @@ const DriverForm = () => {
                     onChange={handleChange}
                     required
                     placeholder="example@email.com"
+<<<<<<< HEAD
                     disabled={isEditMode}
+=======
+>>>>>>> origin/frontend-admin
                   />
                 </div>
 
                 <div className="form-group">
+<<<<<<< HEAD
                   <label>phone *</label>
                   <input
                     type="tel"
                     name="telephone"
                     value={formData.telephone}
+=======
+                  <label>Phone *</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+>>>>>>> origin/frontend-admin
                     onChange={handleChange}
                     required
                     placeholder="+226 XX XX XX XX"
@@ -190,6 +263,7 @@ const DriverForm = () => {
                 </div>
               </div>
 
+<<<<<<< HEAD
               {!isEditMode && (
                 <div className="form-group">
                   <label>Password *</label>
@@ -238,10 +312,22 @@ const DriverForm = () => {
                   value={formData.lieu_residence}
                   onChange={handleChange}
                   placeholder="Adresse"
+=======
+              <div className="form-group">
+                <label>CNIB *</label>
+                <input
+                  type="text"
+                  name="cnib"
+                  value={formData.cnib}
+                  onChange={handleChange}
+                  required
+                  placeholder="CNIB Number"
+>>>>>>> origin/frontend-admin
                 />
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* Voiture - TOUTES les voitures */}
             <div className="form-section">
               <h3>Professional Information</h3>
@@ -260,10 +346,43 @@ const DriverForm = () => {
                     </option>
                   ))}
                 </select>
+=======
+            <div className="form-section">
+              <h3>Professional Information</h3>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Joining Date *</label>
+                  <input
+                    type="date"
+                    name="joining_date"
+                    value={formData.joining_date}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Assigned Car</label>
+                  <select
+                    name="car_id"
+                    value={formData.car_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">-- Select a car --</option>
+                    {AVAILABLE_CARS.map((car) => (
+                      <option key={car.id} value={car.id}>
+                        {car.model_name} - {car.license_plate}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+>>>>>>> origin/frontend-admin
               </div>
             </div>
 
             <div className="form-actions">
+<<<<<<< HEAD
               <button 
                 type="button" 
                 className="btn-cancel" 
@@ -278,6 +397,13 @@ const DriverForm = () => {
                 disabled={loading}
               >
                 {loading ? 'En cours...' : (isEditMode ? 'Update' : 'Add')}
+=======
+              <button type="button" className="btn-cancel" onClick={() => navigate('/drivers')}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-submit">
+                {isEditMode ? 'Update' : 'Add'}
+>>>>>>> origin/frontend-admin
               </button>
             </div>
           </form>

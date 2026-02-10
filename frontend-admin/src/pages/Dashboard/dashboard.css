@@ -58,12 +58,20 @@ html, body, #root {
   
 }
 
+<<<<<<< HEAD
 /* SIDEBAR
+=======
+/* SIDEBAR */
+>>>>>>> origin/frontend-admin
 .sidebar {
   background: linear-gradient(180deg, var(--sidebar), var(--sidebar2));
   color: var(--white);
   padding: 18px 14px;
+<<<<<<< HEAD
 } */
+=======
+}
+>>>>>>> origin/frontend-admin
 
 .brand {
   display: flex;
@@ -225,20 +233,30 @@ html, body, #root {
 
 /* KPI GRID */
 .kpiGrid {
+<<<<<<< HEAD
 
   display: grid;
   display:inline-flex;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 50px;
+=======
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 10px;
+>>>>>>> origin/frontend-admin
 }
 
 .kpiCard {
   position: relative;
   overflow: hidden;
   cursor: pointer;
+<<<<<<< HEAD
   width:  250px;
   height: 120px;
+=======
+>>>>>>> origin/frontend-admin
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 22px;
@@ -698,6 +716,7 @@ html, body, #root {
   /* éviter que la topbar soit serrée */
   .topbarRight { width: 100%; justify-content: flex-end; }
 }
+<<<<<<< HEAD
 
 
 
@@ -708,3 +727,5 @@ html, body, #root {
   width: 2.2rem !important;
   height: 2.2rem !important;
 }
+=======
+>>>>>>> origin/frontend-admin

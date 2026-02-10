@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../../components/Layout/Layout';
 import vehicleService from '../../services/vehicleService';
+=======
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Layout from '../../components/Layout/Layout';
+>>>>>>> origin/frontend-admin
 import './VehicleForm.css';
 
 const VehicleForm = () => {
@@ -15,6 +21,7 @@ const VehicleForm = () => {
     statut: 'available'
   });
 
+<<<<<<< HEAD
   // Charger les données du véhicule si mode édition
   useEffect(() => {
     if (isEditMode) {
@@ -37,6 +44,8 @@ const VehicleForm = () => {
     }
   };
 
+=======
+>>>>>>> origin/frontend-admin
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -44,6 +53,7 @@ const VehicleForm = () => {
     });
   };
 
+<<<<<<< HEAD
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form data:', formData);
@@ -66,6 +76,13 @@ const VehicleForm = () => {
     } else {
       alert('Erreur: ' + result.error);
     }
+=======
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Form data:', formData);
+    alert(isEditMode ? 'Vehicle updated!' : 'Vehicle added!');
+    navigate('/vehicles');
+>>>>>>> origin/frontend-admin
   };
 
   return (

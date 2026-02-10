@@ -1,7 +1,11 @@
 .drivers-page {
+<<<<<<< HEAD
   max-width: 1800px;
   width: 140vh;
   /* width: 1500vh; */
+=======
+  max-width: 1400px;
+>>>>>>> origin/frontend-admin
   margin: 0 auto;
 }
 
@@ -195,7 +199,11 @@
   width: 36px;
   height: 36px;
   border-radius: 8px;
+<<<<<<< HEAD
   background: linear-gradient(135deg, #292b33 0%, #332e38 100%);
+=======
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+>>>>>>> origin/frontend-admin
   display: flex;
   align-items: center;
   justify-content: center;
@@ -236,14 +244,22 @@
   background: none;
   border: none;
   cursor: pointer;
+<<<<<<< HEAD
   font-size: 8px;
+=======
+  font-size: 18px;
+>>>>>>> origin/frontend-admin
   padding: 6px;
   border-radius: 4px;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+<<<<<<< HEAD
   width: 62px;
+=======
+  width: 32px;
+>>>>>>> origin/frontend-admin
   height: 32px;
 }
 
@@ -325,6 +341,7 @@
   padding: 48px !important;
   color: #9ca3af;
 }
+<<<<<<< HEAD
 
 
 
@@ -780,3 +797,5 @@
     width: 100%;
   }
 }
+=======
+>>>>>>> origin/frontend-admin

@@ -1,68 +1,14 @@
+# TaxiTrack - Dashboard Admin
 
-# Frontend Admin
+## Rôle du Module
 
-Admin dashboard for TaxiTrack application.
+Le dossier `frontend-admin` contient l'interface web de gestion pour les administrateurs de la plateforme TaxiTrack.
 
-## Prerequisites
+## Spécifications Techniques
 
-- Node.js (v14 or higher)
-- npm or yarn
-
-## Installation
-
-```bash
-npm install
-```
-
-## Development
-
-```bash
-npm run dev
-```
-
-Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-## Build
-
-```bash
-npm run build
-```
-
-Builds the app for production to the `build` folder.
-
-## Project Structure
-
-```
-frontend-admin/
-├── public/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   ├── App.js
-│   └── index.js
-├── package.json
-└── README.md
-```
-
-## Configuration
-
-Create a `.env` file in the root directory with necessary environment variables:
-
-```
-REACT_APP_API_URL=http://localhost:5000
-```
-
-## Testing
-
-```bash
-npm test
-```
-
-## Deployment
-
-See [deployment documentation](./docs/deployment.md) for production setup.
-
-## License
-
-MIT
+- **Technologie** : React.js (version < 19).
+- **Fonctionnalités clés** :
+  - Gestion de la flotte de véhicules.
+  - Suivi des courses et historique des trajets.
+  - Analyse des performances et rapports financiers.
+  - Gestion des comptes chauffeurs et validation des documents.
