@@ -1,73 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_track/core/app_colors.dart';
 import 'package:taxi_track/core/ride_repository.dart';
+import 'package:taxi_track/core/service_locator.dart';
 
-class RideHistoryScreen extends StatelessWidget {
+class RideHistoryScreen extends StatefulWidget {
   const RideHistoryScreen({super.key});
 
-  // Mock ride history data
-  List<Ride> get _mockRides => [
-    Ride(
-      id: '1',
-      clientId: 'client_001',
-      driverId: 'driver_001',
-      driverName: 'Marc Chauffeur',
-      pickupAddress: 'Times Square',
-      destinationAddress: 'JFK Airport',
-      pickupLat: 40.7580,
-      pickupLng: -73.9855,
-      destinationLat: 40.6413,
-      destinationLng: -73.7781,
-      status: RideStatus.completed,
-      estimatedPrice: 45.50,
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    Ride(
-      id: '2',
-      clientId: 'client_001',
-      driverId: 'driver_002',
-      driverName: 'Sophie Driver',
-      pickupAddress: 'Central Park',
-      destinationAddress: 'Brooklyn Bridge',
-      pickupLat: 40.7829,
-      pickupLng: -73.9654,
-      destinationLat: 40.7061,
-      destinationLng: -73.9969,
-      status: RideStatus.completed,
-      estimatedPrice: 28.00,
-      createdAt: DateTime.now().subtract(const Duration(days: 5)),
-    ),
-    Ride(
-      id: '3',
-      clientId: 'client_001',
-      driverId: 'driver_003',
-      driverName: 'Alex Transport',
-      pickupAddress: 'Grand Central',
-      destinationAddress: 'Empire State Building',
-      pickupLat: 40.7527,
-      pickupLng: -73.9772,
-      destinationLat: 40.7484,
-      destinationLng: -73.9857,
-      status: RideStatus.completed,
-      estimatedPrice: 15.75,
-      createdAt: DateTime.now().subtract(const Duration(days: 7)),
-    ),
-    Ride(
-      id: '4',
-      clientId: 'client_001',
-      driverId: 'driver_001',
-      driverName: 'Marc Chauffeur',
-      pickupAddress: 'LaGuardia Airport',
-      destinationAddress: 'Manhattan',
-      pickupLat: 40.7769,
-      pickupLng: -73.8740,
-      destinationLat: 40.7831,
-      destinationLng: -73.9712,
-      status: RideStatus.cancelled,
-      estimatedPrice: 35.00,
-      createdAt: DateTime.now().subtract(const Duration(days: 10)),
-    ),
-  ];
+  @override
+  State<RideHistoryScreen> createState() => _RideHistoryScreenState();
+}
+
+class _RideHistoryScreenState extends State<RideHistoryScreen> {
+  final RideRepository _rideRepository = sl<RideRepository>();
+  List<Ride>? _rides;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHistory();
+  }
+
+  Future<void> _fetchHistory() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final rides = await _rideRepository.getRideHistory();
+      if (mounted) {
+        setState(() {
+          _rides = rides;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,20 +55,54 @@ class RideHistoryScreen extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
-          'Ride History',
+          'Historique des courses',
           style: TextStyle(color: AppColors.black, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.black),
+            onPressed: _fetchHistory,
+          ),
+        ],
       ),
-      body: _mockRides.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _mockRides.length,
-              itemBuilder: (context, index) {
-                final ride = _mockRides[index];
-                return _buildRideCard(context, ride);
-              },
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+            const SizedBox(height: 16),
+            Text('Erreur: $_error'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchHistory,
+              child: const Text('Réessayer'),
             ),
+          ],
+        ),
+      );
+    }
+
+    if (_rides == null || _rides!.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _rides!.length,
+      itemBuilder: (context, index) {
+        final ride = _rides![index];
+        return _buildRideCard(context, ride);
+      },
     );
   }
 
@@ -110,7 +121,7 @@ class RideHistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No Rides Yet',
+            'Aucune course trouvée',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -119,7 +130,7 @@ class RideHistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Your ride history will appear here',
+            'Votre historique de courses apparaîtra ici',
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
@@ -153,12 +164,13 @@ class RideHistoryScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with date and status
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _formatDate(ride.createdAt!),
+                      ride.createdAt != null
+                          ? _formatDate(ride.createdAt!)
+                          : 'Date inconnue',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -177,7 +189,7 @@ class RideHistoryScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        isCancelled ? 'Cancelled' : 'Completed',
+                        isCancelled ? 'Annulée' : 'Terminée',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -190,8 +202,6 @@ class RideHistoryScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-
-                // Route
                 Row(
                   children: [
                     Column(
@@ -199,7 +209,7 @@ class RideHistoryScreen extends StatelessWidget {
                         Container(
                           width: 12,
                           height: 12,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
@@ -212,7 +222,7 @@ class RideHistoryScreen extends StatelessWidget {
                         Container(
                           width: 12,
                           height: 12,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.success,
                             shape: BoxShape.circle,
                           ),
@@ -230,6 +240,8 @@ class RideHistoryScreen extends StatelessWidget {
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 24),
                           Text(
@@ -238,6 +250,8 @@ class RideHistoryScreen extends StatelessWidget {
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -245,44 +259,45 @@ class RideHistoryScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-
-                // Driver and Price
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: AppColors.primaryGradient,
+                    if (ride.driverName != null)
+                      Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: AppColors.primaryGradient,
+                              ),
+                              shape: BoxShape.circle,
                             ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              ride.driverName![0],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                            child: Center(
+                              child: Text(
+                                ride.driverName![0],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          ride.driverName!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
+                          const SizedBox(width: 8),
+                          Text(
+                            ride.driverName!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[700],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
+                    else
+                      const Text('Aucun chauffeur'),
                     Text(
-                      '\$${ride.estimatedPrice!.toStringAsFixed(2)}',
+                      '${ride.estimatedPrice?.toStringAsFixed(0) ?? "0"} CFA',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -303,14 +318,16 @@ class RideHistoryScreen extends StatelessWidget {
     final now = DateTime.now();
     final difference = now.difference(date).inDays;
 
-    if (difference == 0) {
-      return 'Today';
+    if (now.year == date.year &&
+        now.month == date.month &&
+        now.day == date.day) {
+      return 'Aujourd\'hui';
     } else if (difference == 1) {
-      return 'Yesterday';
+      return 'Hier';
     } else if (difference < 7) {
-      return '$difference days ago';
+      return 'Il y a $difference jours';
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
     }
   }
 
@@ -329,21 +346,24 @@ class RideHistoryScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Trip Details',
+              'Détails du trajet',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            _buildDetailRow('Date', _formatDate(ride.createdAt!)),
-            _buildDetailRow('Driver', ride.driverName!),
-            _buildDetailRow('From', ride.pickupAddress),
-            _buildDetailRow('To', ride.destinationAddress),
             _buildDetailRow(
-              'Fare',
-              '\$${ride.estimatedPrice!.toStringAsFixed(2)}',
+              'Date',
+              ride.createdAt != null ? _formatDate(ride.createdAt!) : 'N/A',
+            ),
+            _buildDetailRow('Chauffeur', ride.driverName ?? 'Non assigné'),
+            _buildDetailRow('Départ', ride.pickupAddress),
+            _buildDetailRow('Destination', ride.destinationAddress),
+            _buildDetailRow(
+              'Prix',
+              '${ride.estimatedPrice?.toStringAsFixed(0) ?? "0"} CFA',
             ),
             _buildDetailRow(
-              'Status',
-              ride.status == RideStatus.cancelled ? 'Cancelled' : 'Completed',
+              'Statut',
+              ride.status == RideStatus.cancelled ? 'Annulée' : 'Terminée',
             ),
           ],
         ),
@@ -358,9 +378,12 @@ class RideHistoryScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),

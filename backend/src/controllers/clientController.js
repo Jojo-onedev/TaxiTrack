@@ -307,7 +307,9 @@ const getRideHistory = async (req, res, next) => {
         long: parseFloat(ride.dest_long)
       },
       price: parseFloat(ride.prix),
-      driver: ride.driver_id ? `${ride.driver_prenom} ${ride.driver_nom}` : null,
+      driver: ride.driver_id ? {
+        name: `${ride.driver_prenom} ${ride.driver_nom}`
+      } : null,
       rating: ride.feedback_score,
       date: ride.completed_at || ride.created_at
     }));

@@ -57,6 +57,10 @@ const createTables = async () => {
         cnib VARCHAR(50) UNIQUE NOT NULL,
         date_entree DATE NOT NULL,
         car_id INTEGER REFERENCES cars(id) ON DELETE SET NULL,
+        is_online BOOLEAN DEFAULT false,
+        current_lat DECIMAL(10, 8),
+        current_long DECIMAL(11, 8),
+        last_location_update TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

@@ -76,6 +76,18 @@ class MockRideRepository implements RideRepository {
     return _rideStreams[rideId]!.stream;
   }
 
+  @override
+  Future<List<Ride>> getRideHistory() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return _rides.values
+        .where(
+          (r) =>
+              r.status == RideStatus.completed ||
+              r.status == RideStatus.cancelled,
+        )
+        .toList();
+  }
+
   void dispose() {
     for (var controller in _rideStreams.values) {
       controller.close();

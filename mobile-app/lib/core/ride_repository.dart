@@ -198,5 +198,6 @@ abstract class RideRepository {
   Future<Ride?> getRideById(String rideId);
   Future<Ride?> getActiveRide();
   Future<void> cancelRide(String rideId);
+  Future<List<Ride>> getRideHistory();
   Stream<Ride> watchRideUpdates(String rideId);
 }

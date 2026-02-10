@@ -85,6 +85,21 @@ class ApiRideRepository implements RideRepository {
   }
 
   @override
+  Future<List<Ride>> getRideHistory() async {
+    try {
+      final response = await _httpService.get('/client/rides/history');
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List<dynamic> ridesData = response.data['data']['rides'] ?? [];
+        return ridesData.map((json) => Ride.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  @override
   Stream<Ride> watchRideUpdates(String rideId) {
     if (!_rideStreams.containsKey(rideId)) {
       final controller = StreamController<Ride>.broadcast();
