@@ -42,7 +42,7 @@
 .kpiCard:hover {
   transform: translateY(-8px);
   border-color: var(--accent-primary);
-  background: rgba(30, 41, 59, 0.9);
+  background: var(--bg-secondary);
 }
 
 .kpiCard:hover::before {
@@ -127,8 +127,8 @@
   width: 100px;
   height: 100px;
   background: var(--accent-primary);
-  filter: blur(60px);
-  opacity: 0.1;
+  filter: blur(40px);
+  opacity: 0.15;
   pointer-events: none;
 }
 
@@ -199,8 +199,8 @@
 
 .segBtn.active {
   background: var(--bg-primary);
-  color: var(--text-primary);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  color: var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .select {

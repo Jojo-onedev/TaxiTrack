@@ -125,7 +125,7 @@
   min-width: 300px;
 }
 
-.search-box i {
+.search-box svg {
   position: absolute;
   left: 12px;
   top: 50%;
@@ -182,7 +182,7 @@
 .clients-table th {
   text-align: left;
   padding: 18px 24px;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--bg-primary);
   color: var(--text-muted);
   font-weight: 700;
   text-transform: uppercase;
@@ -199,7 +199,7 @@
 }
 
 .clients-table tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .client-id {
@@ -234,12 +234,14 @@
 }
 
 .action-btn {
-  width: 36px;
+  padding: 6px 14px;
+  min-width: 85px;
   height: 36px;
   border-radius: 10px;
   border: 1px solid var(--border-glass);
   background: var(--bg-secondary);
-  font-size: 18px;
+  font-size: 13px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;

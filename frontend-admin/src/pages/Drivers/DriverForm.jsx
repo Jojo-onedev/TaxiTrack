@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaArrowLeft, FaUser, FaBuilding, FaSave, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import driverService from '../../services/driverService';
 import vehicleService from '../../services/vehicleService';
@@ -106,7 +106,7 @@ const DriverForm = () => {
     setLoading(false);
 
     if (result.success) {
-      alert(isEditMode ? 'Driver updated!' : 'Driver added!');
+      alert(isEditMode ? 'Chauffeur mis à jour !' : 'Chauffeur ajouté !');
       navigate('/drivers');
     } else {
       alert('Erreur: ' + result.error);
@@ -127,39 +127,39 @@ const DriverForm = () => {
     <Layout>
       <div className="driver-form-page">
         <div className="form-header">
-          <h1>{isEditMode ? 'Edit Driver' : 'Add Driver'}</h1>
+          <h1>{isEditMode ? 'Modifier Chauffeur' : 'Ajouter Chauffeur'}</h1>
           <button className="btn-back" onClick={() => navigate('/drivers')}>
-            <FaArrowLeft /> Back to list
+            <FaArrowLeft /> Retour à la liste
           </button>
         </div>
 
         <div className="form-card">
           <form onSubmit={handleSubmit}>
             <div className="form-section">
-              <h3><FaUser /> Personal Information</h3>
+              <h3>Informations Personnelles</h3>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Last Name *</label>
+                  <label>Nom *</label>
                   <input
                     type="text"
                     name="nom"
                     value={formData.nom}
                     onChange={handleChange}
                     required
-                    placeholder="Enter last name"
+                    placeholder="Nom de famille"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>First Name *</label>
+                  <label>Prénom *</label>
                   <input
                     type="text"
                     name="prenom"
                     value={formData.prenom}
                     onChange={handleChange}
                     required
-                    placeholder="Enter first name"
+                    placeholder="Prénom"
                   />
                 </div>
               </div>
@@ -173,13 +173,13 @@ const DriverForm = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    placeholder="example@email.com"
+                    placeholder="exemple@email.com"
                     disabled={isEditMode}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Phone *</label>
+                  <label>Téléphone *</label>
                   <input
                     type="tel"
                     name="telephone"
@@ -193,7 +193,7 @@ const DriverForm = () => {
 
               {!isEditMode && (
                 <div className="form-group">
-                  <label>Password *</label>
+                  <label>Mot de passe *</label>
                   <input
                     type="password"
                     name="password"
@@ -215,12 +215,12 @@ const DriverForm = () => {
                     value={formData.cnib}
                     onChange={handleChange}
                     required
-                    placeholder="CNIB Number"
+                    placeholder="Numéro CNIB"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Joining Date *</label>
+                  <label>Date d'entrée *</label>
                   <input
                     type="date"
                     name="date_entree"
@@ -232,7 +232,7 @@ const DriverForm = () => {
               </div>
 
               <div className="form-group">
-                <label>Residence *</label>
+                <label>Lieu de résidence *</label>
                 <input
                   type="text"
                   name="lieu_residence"
@@ -245,16 +245,16 @@ const DriverForm = () => {
             </div>
 
             <div className="form-section">
-              <h3><FaBuilding /> Professional Information</h3>
+              <h3>Informations Professionnelles</h3>
 
               <div className="form-group">
-                <label>Assigned Car</label>
+                <label>Véhicule Assigné</label>
                 <select
                   name="car_id"
                   value={formData.car_id}
                   onChange={handleChange}
                 >
-                  <option value="">-- Select a car --</option>
+                  <option value="">-- Sélectionner un véhicule --</option>
                   {allCars.map((car) => (
                     <option key={car.id} value={car.id}>
                       {car.nom_modele || car.nommodele} - {car.plaque_immatriculation || car.plaqueimmatriculation}
@@ -271,14 +271,14 @@ const DriverForm = () => {
                 onClick={() => navigate('/drivers')}
                 disabled={loading}
               >
-                <FaTimes /> Cancel
+                Annuler
               </button>
               <button
                 type="submit"
                 className="btn-submit"
                 disabled={loading}
               >
-                {loading ? 'En cours...' : (isEditMode ? <><FaSave /> Update</> : <><FaSave /> Add</>)}
+                {loading ? 'En cours...' : (isEditMode ? 'Enregistrer les modifications' : 'Ajouter le chauffeur')}
               </button>
             </div>
           </form>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaSearch, FaEdit, FaTrash, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import vehicleService from '../../services/vehicleService';
 import './Vehicles.css';
@@ -231,18 +231,16 @@ const Vehicles = () => {
                       <div className="action-buttons">
                         <button
                           className="action-btn edit"
-                          title="Update"
                           onClick={() => handleEdit(vehicle.id)}
                         >
-                          <FaEdit />
+                          Modifier
                         </button>
 
                         <button
                           className="action-btn delete"
-                          title="Delete"
                           onClick={() => handleDelete(vehicle.id)}
                         >
-                          <FaTrash />
+                          Supprimer
                         </button>
                       </div>
                     </td>

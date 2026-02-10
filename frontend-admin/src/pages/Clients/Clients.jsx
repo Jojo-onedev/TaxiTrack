@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUsers, FaSearch, FaSyncAlt, FaEdit, FaTrash, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaUsers, FaSearch, FaSyncAlt, FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import clientService from '../../services/clientService';
 import './Clients.css';
@@ -247,17 +247,15 @@ const Clients = () => {
                       <div className="action-buttons">
                         <button
                           className="action-btn edit"
-                          title="Edit"
                           onClick={() => handleEdit(client.user_id)}
                         >
-                          <FaEdit />
+                          Modifier
                         </button>
                         <button
                           className="action-btn delete"
-                          title="Supprimer"
                           onClick={() => handleDelete(client.user_id)}
                         >
-                          <FaTrash />
+                          Supprimer
                         </button>
                       </div>
                     </td>

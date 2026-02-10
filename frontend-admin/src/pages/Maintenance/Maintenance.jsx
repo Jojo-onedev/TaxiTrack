@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaTools, FaCalendarAlt, FaMoneyBillWave, FaCalculator, FaEdit, FaTrash, FaTimes, FaSearch, FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
+import { FaPlus, FaTools, FaCalendarAlt, FaMoneyBillWave, FaCalculator, FaTimes, FaSearch, FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import maintenanceService from '../../services/maintenanceService';
 import vehicleService from '../../services/vehicleService';
@@ -229,11 +229,11 @@ const Maintenance = () => {
                     <td>{(m.datemaintenance || m.date_maintenance)?.split('T')[0] || '—'}</td>
                     <td>
                       <div className="action-buttons">
-                        <button className="action-btn edit" onClick={() => openModal(m)} title="Modifier">
-                          <FaEdit />
+                        <button className="action-btn edit" onClick={() => openModal(m)}>
+                          Modifier
                         </button>
-                        <button className="action-btn delete" onClick={() => handleDelete(m.id)} title="Supprimer">
-                          <FaTrash />
+                        <button className="action-btn delete" onClick={() => handleDelete(m.id)}>
+                          Supprimer
                         </button>
                       </div>
                     </td>

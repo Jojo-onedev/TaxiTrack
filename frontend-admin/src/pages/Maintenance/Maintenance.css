@@ -72,13 +72,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(15, 23, 42, 0.2);
+  background: var(--bg-primary);
   border-bottom: 1px solid var(--border-glass);
 }
 
+.search-box {
+  position: relative;
+  min-width: 300px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  z-index: 5;
+}
+
 .search-input {
-  max-width: 300px;
-  padding: 10px 16px;
+  width: 100%;
+  padding: 10px 16px 10px 40px;
   background: var(--bg-primary);
   border: 1px solid var(--border-glass);
   border-radius: 12px;
@@ -105,7 +119,7 @@
 .maintenance-table th {
   text-align: left;
   padding: 18px 24px;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--bg-primary);
   color: var(--text-muted);
   font-weight: 700;
   text-transform: uppercase;
@@ -122,7 +136,7 @@
 }
 
 .maintenance-table tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .maintenance-table strong {
@@ -146,17 +160,22 @@
 }
 
 .btn-edit,
-.btn-delete {
-  padding: 8px 16px;
+.btn-delete,
+.action-btn {
+  padding: 6px 14px;
+  min-width: 85px;
+  height: 34px;
   border-radius: 10px;
   border: 1px solid var(--border-glass);
   background: var(--bg-secondary);
   color: var(--text-secondary);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-smooth);
-  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-edit:hover {
@@ -175,7 +194,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;

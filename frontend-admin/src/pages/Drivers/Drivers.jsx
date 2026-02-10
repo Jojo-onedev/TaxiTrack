@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSearch, FaEdit, FaTrash, FaPlus, FaFilter, FaUserFriends } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaFilter, FaUserFriends } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import driverService from '../../services/driverService';
 import vehicleService from '../../services/vehicleService';
@@ -237,17 +237,15 @@ const Drivers = () => {
                         <button
                           className="action-btn edit"
                           onClick={() => navigate(`/drivers/edit/${driver.user_id}`)}
-                          title="Edit"
                         >
-                          <FaEdit />
+                          Modifier
                         </button>
 
                         <button
                           className="action-btn delete"
                           onClick={() => handleDelete(driver.user_id)}
-                          title="Delete"
                         >
-                          <FaTrash />
+                          Supprimer
                         </button>
                       </div>
                     </td>

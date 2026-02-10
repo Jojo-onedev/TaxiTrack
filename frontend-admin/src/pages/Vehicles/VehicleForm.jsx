@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaEdit, FaPlus, FaCar, FaTag, FaIdCard, FaChartBar, FaTimes, FaCheck, FaArrowLeft } from 'react-icons/fa';
+import { FaArrowLeft } from 'react-icons/fa';
 import Layout from '../../components/Layout/Layout';
 import vehicleService from '../../services/vehicleService';
 import './VehicleForm.css';
@@ -62,7 +62,7 @@ const VehicleForm = () => {
       : await vehicleService.createVehicle(apiData);
 
     if (result.success) {
-      alert(isEditMode ? 'Vehicle updated!' : 'Vehicle added!');
+      alert(isEditMode ? 'Véhicule mis à jour !' : 'Véhicule ajouté !');
       navigate('/vehicles');
     } else {
       alert('Erreur: ' + result.error);
@@ -74,11 +74,10 @@ const VehicleForm = () => {
       <div className="vehicle-form-page">
         <div className="form-header">
           <div className="header-title">
-            <span className="form-icon">{isEditMode ? <FaEdit /> : <FaPlus />}</span>
-            <h1>{isEditMode ? 'Edit Vehicle' : 'Add Vehicle'}</h1>
+            <h1>{isEditMode ? 'Modifier Véhicule' : 'Ajouter Véhicule'}</h1>
           </div>
           <button className="btn-back" onClick={() => navigate('/vehicles')}>
-            <FaArrowLeft /> Back to list
+            <FaArrowLeft /> Retour à la liste
           </button>
         </div>
 
@@ -86,58 +85,57 @@ const VehicleForm = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-section">
               <div className="section-header">
-                <span className="section-icon"><FaCar /></span>
-                <h3>Vehicle Information</h3>
+                <h3>Informations du Véhicule</h3>
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label><FaTag /> Model Name *</label>
+                  <label>Nom du Modèle *</label>
                   <input
                     type="text"
                     name="nom_modele"
                     value={formData.nom_modele}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. Toyota Corolla"
+                    placeholder="ex: Toyota Corolla"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label><FaIdCard /> License Plate *</label>
+                  <label>Plaque d'immatriculation *</label>
                   <input
                     type="text"
                     name="plaque_immatriculation"
                     value={formData.plaque_immatriculation}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. BF-1234-AB"
+                    placeholder="ex: BF-1234-AB"
                     style={{ textTransform: 'uppercase' }}
                   />
                 </div>
               </div>
 
               <div className="form-group">
-                <label><FaChartBar /> Status *</label>
+                <label>Statut *</label>
                 <select
                   name="statut"
                   value={formData.statut}
                   onChange={handleChange}
                   required
                 >
-                  <option value="available">Available - Disponible</option>
-                  <option value="in_use">In Use - En service</option>
-                  <option value="maintenance">Maintenance - En réparation</option>
+                  <option value="available">Disponible</option>
+                  <option value="in_use">En service</option>
+                  <option value="maintenance">En réparation</option>
                 </select>
               </div>
             </div>
 
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={() => navigate('/vehicles')}>
-                <FaTimes /> Cancel
+                Annuler
               </button>
               <button type="submit" className="btn-submit">
-                {isEditMode ? <><FaCheck /> Update</> : <><FaCheck /> Add</>}
+                {isEditMode ? 'Enregistrer les modifications' : 'Ajouter le véhicule'}
               </button>
             </div>
           </form>

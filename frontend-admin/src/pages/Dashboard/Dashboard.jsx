@@ -133,7 +133,7 @@ export default function Dashboard() {
                   <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                   <Tooltip
-                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                     contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-glass)', borderRadius: '12px' }}
                   />
                   <Bar dataKey="count" radius={[6, 6, 0, 0]}>
