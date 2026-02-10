@@ -1,3 +1,9 @@
+---
+noteId: "c1081de0053b11f189695376c24dd689"
+tags: []
+
+---
+
 # 📋 Endpoints Manquants Ajoutés - TaxiTrack Backend
 
 **Date** : 8 février 2026  

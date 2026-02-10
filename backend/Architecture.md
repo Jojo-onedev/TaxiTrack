@@ -1,3 +1,9 @@
+---
+noteId: "c105d3f1053b11f189695376c24dd689"
+tags: []
+
+---
+
 # 🏗️ TaxiTrack Backend - Architecture Technique
 
 **Version** : 1.0.0  

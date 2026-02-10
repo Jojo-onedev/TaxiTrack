@@ -14,8 +14,6 @@ const getDriverStats = async (req, res, next) => {
     const stats = await pool.query(`
       SELECT 
         COUNT(*) as total_drivers,
-        COUNT(*) FILTER (WHERE availability = true) as available_drivers,
-        COUNT(*) FILTER (WHERE availability = false) as busy_drivers,
         COUNT(DISTINCT car_id) FILTER (WHERE car_id IS NOT NULL) as drivers_with_car
       FROM driver_profiles
     `);
@@ -222,10 +220,6 @@ const getMaintenanceStats = async (req, res, next) => {
  */
 const getFeedbackStats = async (req, res, next) => {
   try {
-    // Note : La table feedbacks n'existe pas dans le schéma actuel
-    // On va utiliser une table fictive ou retourner des données vides
-    // À adapter selon votre schéma réel
-    
     const stats = {
       total_feedbacks: 0,
       average_rating: 0,
@@ -262,7 +256,6 @@ const getDrivers = async (req, res, next) => {
       page = 1, 
       limit = 10, 
       search = '', 
-      availability,
       has_car 
     } = req.query;
 
@@ -281,13 +274,6 @@ const getDrivers = async (req, res, next) => {
         dp.telephone ILIKE $${paramIndex}
       )`);
       queryParams.push(`%${search}%`);
-      paramIndex++;
-    }
-
-    // Filtre disponibilité
-    if (availability !== undefined) {
-      whereConditions.push(`dp.availability = $${paramIndex}`);
-      queryParams.push(availability === 'true');
       paramIndex++;
     }
 
@@ -322,16 +308,13 @@ const getDrivers = async (req, res, next) => {
         dp.prenom,
         dp.telephone,
         dp.lieu_residence,
-        dp.availability,
-        dp.current_lat,
-        dp.current_long,
-        dp.last_location_update,
         dp.car_id,
+        dp.cnib,
+        dp.date_entree,
         u.email,
         u.created_at,
         c.nom_modele as car_model,
         c.plaque_immatriculation as car_plate,
-        c.type_vehicule as car_type,
         COUNT(r.id) as total_rides,
         COALESCE(SUM(r.prix) FILTER (WHERE r.status = 'completed'), 0) as total_earnings
       FROM driver_profiles dp
@@ -340,8 +323,8 @@ const getDrivers = async (req, res, next) => {
       LEFT JOIN rides r ON r.driver_id = dp.user_id
       ${whereClause}
       GROUP BY dp.user_id, dp.nom, dp.prenom, dp.telephone, dp.lieu_residence,
-               dp.availability, dp.current_lat, dp.current_long, dp.last_location_update,
-               dp.car_id, u.email, u.created_at, c.nom_modele, c.plaque_immatriculation, c.type_vehicule
+               dp.car_id, dp.cnib, dp.date_entree, u.email, u.created_at, 
+               c.nom_modele, c.plaque_immatriculation
       ORDER BY dp.user_id DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
@@ -380,11 +363,9 @@ const getDriverById = async (req, res, next) => {
         dp.prenom,
         dp.telephone,
         dp.lieu_residence,
-        dp.availability,
-        dp.current_lat,
-        dp.current_long,
-        dp.last_location_update,
         dp.car_id,
+        dp.cnib,
+        dp.date_entree,
         u.email,
         u.created_at,
         c.nom_modele,
@@ -470,7 +451,9 @@ const createDriver = async (req, res, next) => {
       prenom,
       telephone,
       lieu_residence,
-      car_id
+      car_id,
+      cnib,
+      date_entree  
     } = req.body;
 
     await client.query('BEGIN');
@@ -510,7 +493,7 @@ const createDriver = async (req, res, next) => {
 
     // Créer l'utilisateur
     const userResult = await client.query(
-      `INSERT INTO users (email, password, role)
+      `INSERT INTO users (email, password_hash, role)
        VALUES ($1, $2, 'driver')
        RETURNING id, email, role, created_at`,
       [email, hashedPassword]
@@ -521,11 +504,11 @@ const createDriver = async (req, res, next) => {
     // Créer le profil chauffeur
     const profileResult = await client.query(
       `INSERT INTO driver_profiles (
-        user_id, nom, prenom, telephone, lieu_residence, car_id, availability
+        user_id, nom, prenom, telephone, lieu_residence, car_id, cnib, date_entree  
       )
-      VALUES ($1, $2, $3, $4, $5, $6, true)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *`,
-      [userId, nom, prenom, telephone, lieu_residence, car_id || null]
+      [userId, nom, prenom, telephone, lieu_residence, car_id || null, cnib, date_entree]
     );
 
     await client.query('COMMIT');
@@ -560,8 +543,7 @@ const updateDriver = async (req, res, next) => {
       prenom,
       telephone,
       lieu_residence,
-      car_id,
-      availability
+      car_id
     } = req.body;
 
     await client.query('BEGIN');
@@ -624,11 +606,6 @@ const updateDriver = async (req, res, next) => {
     if (car_id !== undefined) {
       updates.push(`car_id = $${paramIndex}`);
       values.push(car_id || null);
-      paramIndex++;
-    }
-    if (availability !== undefined) {
-      updates.push(`availability = $${paramIndex}`);
-      values.push(availability);
       paramIndex++;
     }
 
@@ -877,10 +854,6 @@ const createCar = async (req, res, next) => {
     const {
       nom_modele,
       plaque_immatriculation,
-      type_vehicule,
-      couleur,
-      annee_fabrication,
-      kilometrage,
       status
     } = req.body;
 
@@ -898,19 +871,12 @@ const createCar = async (req, res, next) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO cars (
-        nom_modele, plaque_immatriculation, type_vehicule, 
-        couleur, annee_fabrication, kilometrage, status
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *`,
+      `INSERT INTO cars (nom_modele, plaque_immatriculation, status)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
       [
         nom_modele,
         plaque_immatriculation,
-        type_vehicule,
-        couleur,
-        annee_fabrication,
-        kilometrage || 0,
         status || 'active'
       ]
     );
@@ -937,10 +903,6 @@ const updateCar = async (req, res, next) => {
     const {
       nom_modele,
       plaque_immatriculation,
-      type_vehicule,
-      couleur,
-      annee_fabrication,
-      kilometrage,
       status
     } = req.body;
 
@@ -985,26 +947,6 @@ const updateCar = async (req, res, next) => {
     if (plaque_immatriculation !== undefined) {
       updates.push(`plaque_immatriculation = $${paramIndex}`);
       values.push(plaque_immatriculation);
-      paramIndex++;
-    }
-    if (type_vehicule !== undefined) {
-      updates.push(`type_vehicule = $${paramIndex}`);
-      values.push(type_vehicule);
-      paramIndex++;
-    }
-    if (couleur !== undefined) {
-      updates.push(`couleur = $${paramIndex}`);
-      values.push(couleur);
-      paramIndex++;
-    }
-    if (annee_fabrication !== undefined) {
-      updates.push(`annee_fabrication = $${paramIndex}`);
-      values.push(annee_fabrication);
-      paramIndex++;
-    }
-    if (kilometrage !== undefined) {
-      updates.push(`kilometrage = $${paramIndex}`);
-      values.push(kilometrage);
       paramIndex++;
     }
     if (status !== undefined) {
@@ -1293,18 +1235,18 @@ const getMaintenanceHistory = async (req, res, next) => {
 
     // Récupérer les maintenances
     queryParams.push(limit, offset);
-    const maintenanceQuery = `
-      SELECT 
-        m.*,
-        c.nom_modele,
-        c.plaque_immatriculation,
-        c.type_vehicule
-      FROM maintenance m
-      JOIN cars c ON c.id = m.car_id
-      ${whereClause}
-      ORDER BY m.date_maintenance DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
+   const maintenanceQuery = `
+  SELECT 
+    m.*,  -- TOUT maintenance
+    COALESCE(c.nom_modele, 'Véhicule inconnu') as nom_modele,
+    COALESCE(c.plaque_immatriculation, 'Non assigné') as plaque_immatriculation
+  FROM maintenance m
+  LEFT JOIN cars c ON c.id = m.car_id  -- LEFT = tolérant si pas de voiture
+  ${whereClause}
+  ORDER BY m.date_maintenance DESC
+  LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+`;
+
     
     const maintenanceResult = await pool.query(maintenanceQuery, queryParams);
 
@@ -1379,9 +1321,6 @@ const createMaintenance = async (req, res, next) => {
  */
 const getFeedbacks = async (req, res, next) => {
   try {
-    // Table feedbacks non présente dans le schéma actuel
-    // Retourner des données vides pour l'instant
-    
     res.json({
       success: true,
       data: {

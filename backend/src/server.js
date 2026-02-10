@@ -75,6 +75,10 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/client', clientRoutes);
 app.use('/api/driver', driverRoutes);
+// Elodie a ajoute les routes admin
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
+
 
 // Gestion des routes non trouvées
 app.use('*', (req, res) => {
