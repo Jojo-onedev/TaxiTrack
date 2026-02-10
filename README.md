@@ -37,6 +37,12 @@ docker exec -it taxitrack_backend npm run db:seed
 *   **Tableau de bord Admin** : Ouvrez [http://localhost:80](http://localhost:80)
 *   **API Backend** : [http://localhost:5000](http://localhost:5000)
 
+### 6. Et l'application Mobile ?
+L'application mobile n'est pas dans Docker car elle doit s'exécuter sur un téléphone (ou un émulateur). Une fois que vos conteneurs Docker tournent :
+1. Allez dans le dossier `mobile-app`.
+2. Lancez `flutter run -d emulator-[nom_de_votre_premier_emulateur]` destiné au chauffeur.
+3. Lancer dans un autre terminal `flutter run -d emulator-[nom_de_votre_deuxieme_emulateur]` destiné au client.
+
 ---
 
 ## 🏗️ Architecture du Projet
