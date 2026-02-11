@@ -1,5 +1,5 @@
 # Utiliser une image Node.js officielle comme image parent
-FROM node:18-alpine
+FROM node:20-alpine AS build
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
