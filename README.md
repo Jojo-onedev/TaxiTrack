@@ -35,7 +35,8 @@ docker exec -it taxitrack_backend npm run db:seed
 
 ### 5. Accès aux interfaces
 *   **Tableau de bord Admin** : Ouvrez [http://localhost:80](http://localhost:80)
-*   **API Backend** : [http://localhost:5000](http://localhost:5000)
+*   **Documentation API (Swagger)** : [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
+*   **API Backend** : [http://localhost:5000/api](http://localhost:5000/api)
 
 ### 6. Et l'application Mobile ?
 L'application mobile n'est pas dans Docker car elle doit s'exécuter sur un téléphone (ou un émulateur). Une fois que vos conteneurs Docker tournent :
