@@ -20,9 +20,25 @@ router.use(authenticate);
 router.use(authorize('driver'));
 
 /**
- * @route   PATCH /api/driver/status
- * @desc    Mettre à jour le statut en ligne/hors ligne
- * @access  Driver only
+ * @swagger
+ * /driver/status:
+ *   patch:
+ *     summary: Mettre à jour le statut en ligne/hors ligne
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [is_online]
+ *             properties:
+ *               is_online: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Statut mis à jour
  */
 router.patch(
   '/status',
@@ -36,16 +52,35 @@ router.patch(
 );
 
 /**
- * @route   GET /api/driver/rides/available
- * @desc    Récupérer les courses disponibles
- * @access  Driver only
+ * @swagger
+ * /driver/rides/available:
+ *   get:
+ *     summary: Récupérer les courses disponibles
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des courses en attente
  */
 router.get('/rides/available', getAvailableRides);
 
 /**
- * @route   POST /api/driver/rides/:id/accept
- * @desc    Accepter une course
- * @access  Driver only
+ * @swagger
+ * /driver/rides/{id}/accept:
+ *   post:
+ *     summary: Accepter une course
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Course acceptée
  */
 router.post(
   '/rides/:id/accept',
@@ -59,9 +94,30 @@ router.post(
 );
 
 /**
- * @route   PATCH /api/driver/rides/:id/update-status
- * @desc    Mettre à jour le statut d'une course
- * @access  Driver only
+ * @swagger
+ * /driver/rides/{id}/update-status:
+ *   patch:
+ *     summary: Mettre à jour le statut d'une course
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [status]
+ *             properties:
+ *               status: { type: string, enum: [arrived, in_progress, completed] }
+ *     responses:
+ *       200:
+ *         description: Statut mis à jour
  */
 router.patch(
   '/rides/:id/update-status',
@@ -78,30 +134,58 @@ router.patch(
 );
 
 /**
- * @route   GET /api/driver/stats/summary
- * @desc    Récupérer les statistiques du chauffeur
- * @access  Driver only
+ * @swagger
+ * /driver/stats/summary:
+ *   get:
+ *     summary: Récupérer les statistiques du chauffeur
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Résumé des gains et trajets
  */
 router.get('/stats/summary', getDriverStats);
 
 /**
- * @route   GET /api/driver/car
- * @desc    Récupérer les infos du véhicule
- * @access  Driver only
+ * @swagger
+ * /driver/car:
+ *   get:
+ *     summary: Récupérer les infos du véhicule
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Détails du véhicule assigné
  */
 router.get('/car', getDriverCar);
 
 /**
- * @route   GET /api/driver/rides/history
- * @desc    Récupérer l'historique des courses
- * @access  Driver only
+ * @swagger
+ * /driver/rides/history:
+ *   get:
+ *     summary: Récupérer l'historique des courses
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des trajets effectués
  */
 router.get('/rides/history', getDriverRideHistory);
 
 /**
- * @route   GET /api/driver/earnings/history
- * @desc    Récupérer l'historique des gains
- * @access  Driver only
+ * @swagger
+ * /driver/earnings/history:
+ *   get:
+ *     summary: Récupérer l'historique des gains
+ *     tags: [Driver]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste chronologique des gains
  */
 router.get('/earnings/history', getDriverEarningsHistory);
 

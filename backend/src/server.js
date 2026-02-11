@@ -8,6 +8,9 @@ require('dotenv').config();
 const { errorHandler } = require('./middleware/errorHandler');
 const { initializeSocket } = require('./config/socket');
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 // Import des routes
 const authRoutes = require('./routes/authRoutes');
 const clientRoutes = require('./routes/clientRoutes');
@@ -40,6 +43,9 @@ app.use((req, res, next) => {
   req.io = io;
   next();
 });
+
+// Documentation Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 

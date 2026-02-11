@@ -8,48 +8,101 @@ const { authenticate, authorize } = require('../middleware/auth');
 router.use(authenticate);
 router.use(authorize('admin'));
 
-// ============================================
-// STATISTIQUES - Dashboard
-// ============================================
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Gestion de la flotte, des chauffeurs et statistiques
+ */
 
 /**
- * GET /api/admin/stats/drivers
- * Statistiques globales des chauffeurs
+ * @swagger
+ * /admin/stats/drivers:
+ *   get:
+ *     summary: Statistiques globales des chauffeurs
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Stats récupérées
  */
 router.get('/stats/drivers', adminController.getDriverStats);
 
 /**
- * GET /api/admin/stats/vehicles
- * Statistiques des véhicules
+ * @swagger
+ * /admin/stats/vehicles:
+ *   get:
+ *     summary: Statistiques des véhicules
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Stats récupérées
  */
 router.get('/stats/vehicles', adminController.getVehicleStats);
 
 /**
- * GET /api/admin/stats/clients
- * Statistiques des clients
+ * @swagger
+ * /admin/stats/clients:
+ *   get:
+ *     summary: Statistiques des clients
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Stats récupérées
  */
 router.get('/stats/clients', adminController.getClientStats);
 
 /**
- * GET /api/admin/stats/maintenance
- * Statistiques de maintenance
+ * @swagger
+ * /admin/stats/maintenance:
+ *   get:
+ *     summary: Statistiques de maintenance
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Stats récupérées
  */
 router.get('/stats/maintenance', adminController.getMaintenanceStats);
 
 /**
- * GET /api/admin/stats/feedbacks
- * Statistiques des avis clients
+ * @swagger
+ * /admin/stats/feedbacks:
+ *   get:
+ *     summary: Statistiques des avis clients
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Stats récupérées
  */
 router.get('/stats/feedbacks', adminController.getFeedbackStats);
 
-// ============================================
-// GESTION DES CHAUFFEURS
-// ============================================
-
 /**
- * GET /api/admin/drivers
- * Liste des chauffeurs avec filtres et pagination
- * Query params: page, limit, search, availability, has_car
+ * @swagger
+ * /admin/drivers:
+ *   get:
+ *     summary: Liste des chauffeurs avec filtres
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *       - in: query
+ *         name: availability
+ *         schema: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Liste des chauffeurs
  */
 router.get('/drivers', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page doit être un entier positif'),
@@ -59,16 +112,50 @@ router.get('/drivers', [
 ], adminController.getDrivers);
 
 /**
- * GET /api/admin/drivers/:id
- * Détails d'un chauffeur
+ * @swagger
+ * /admin/drivers/{id}:
+ *   get:
+ *     summary: Détails d'un chauffeur
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Profil complet du chauffeur
  */
 router.get('/drivers/:id', [
   param('id').isInt().withMessage('ID doit être un entier')
 ], adminController.getDriverById);
 
 /**
- * POST /api/admin/drivers
- * Créer un nouveau chauffeur
+ * @swagger
+ * /admin/drivers:
+ *   post:
+ *     summary: Créer un nouveau chauffeur
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password, nom, prenom, telephone]
+ *             properties:
+ *               email: { type: string }
+ *               password: { type: string }
+ *               nom: { type: string }
+ *               prenom: { type: string }
+ *               telephone: { type: string }
+ *     responses:
+ *       201:
+ *         description: Chauffeur créé
  */
 router.post('/drivers', [
   body('email').isEmail().withMessage('Email invalide'),
@@ -81,8 +168,21 @@ router.post('/drivers', [
 ], adminController.createDriver);
 
 /**
- * PATCH /api/admin/drivers/:id
- * Modifier un chauffeur
+ * @swagger
+ * /admin/drivers/{id}:
+ *   patch:
+ *     summary: Modifier un chauffeur
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Mis à jour avec succès
  */
 router.patch('/drivers/:id', [
   param('id').isInt().withMessage('ID doit être un entier'),
@@ -95,21 +195,37 @@ router.patch('/drivers/:id', [
 ], adminController.updateDriver);
 
 /**
- * DELETE /api/admin/drivers/:id
- * Supprimer un chauffeur
+ * @swagger
+ * /admin/drivers/{id}:
+ *   delete:
+ *     summary: Supprimer un chauffeur
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Supprimé
  */
 router.delete('/drivers/:id', [
   param('id').isInt().withMessage('ID doit être un entier')
 ], adminController.deleteDriver);
 
-// ============================================
-// GESTION DES VÉHICULES
-// ============================================
-
 /**
- * GET /api/admin/cars
- * Liste des véhicules avec filtres et pagination
- * Query params: page, limit, search, status, type_vehicule
+ * @swagger
+ * /admin/cars:
+ *   get:
+ *     summary: Liste des véhicules
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des véhicules
  */
 router.get('/cars', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page doit être un entier positif'),
@@ -119,16 +235,49 @@ router.get('/cars', [
 ], adminController.getCars);
 
 /**
- * GET /api/admin/cars/:id
- * Détails d'un véhicule
+ * @swagger
+ * /admin/cars/{id}:
+ *   get:
+ *     summary: Détails d'un véhicule
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Détails du véhicule
  */
 router.get('/cars/:id', [
   param('id').isInt().withMessage('ID doit être un entier')
 ], adminController.getCarById);
 
 /**
- * POST /api/admin/cars
- * Ajouter un nouveau véhicule
+ * @swagger
+ * /admin/cars:
+ *   post:
+ *     summary: Ajouter un nouveau véhicule
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [nom_modele, plaque_immatriculation, type_vehicule]
+ *             properties:
+ *               nom_modele: { type: string }
+ *               plaque_immatriculation: { type: string }
+ *               type_vehicule: { type: string }
+ *               status: { type: string, enum: [active, maintenance, inactive] }
+ *     responses:
+ *       201:
+ *         description: Véhicule ajouté
  */
 router.post('/cars', [
   body('nom_modele').notEmpty().withMessage('Le nom du modèle est requis'),
@@ -141,8 +290,21 @@ router.post('/cars', [
 ], adminController.createCar);
 
 /**
- * PATCH /api/admin/cars/:id
- * Modifier un véhicule
+ * @swagger
+ * /admin/cars/{id}:
+ *   patch:
+ *     summary: Modifier un véhicule
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Mis à jour avec succès
  */
 router.patch('/cars/:id', [
   param('id').isInt().withMessage('ID doit être un entier'),
@@ -156,21 +318,37 @@ router.patch('/cars/:id', [
 ], adminController.updateCar);
 
 /**
- * DELETE /api/admin/cars/:id
- * Supprimer un véhicule
+ * @swagger
+ * /admin/cars/{id}:
+ *   delete:
+ *     summary: Supprimer un véhicule
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Supprimé
  */
 router.delete('/cars/:id', [
   param('id').isInt().withMessage('ID doit être un entier')
 ], adminController.deleteCar);
 
-// ============================================
-// GESTION DES CLIENTS
-// ============================================
-
 /**
- * GET /api/admin/clients
- * Liste des clients avec pagination
- * Query params: page, limit, search
+ * @swagger
+ * /admin/clients:
+ *   get:
+ *     summary: Liste des clients
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des clients
  */
 router.get('/clients', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page doit être un entier positif'),
@@ -178,21 +356,37 @@ router.get('/clients', [
 ], adminController.getClients);
 
 /**
- * DELETE /api/admin/clients/:id
- * Supprimer un client
+ * @swagger
+ * /admin/clients/{id}:
+ *   delete:
+ *     summary: Supprimer un client
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Supprimé
  */
 router.delete('/clients/:id', [
   param('id').isInt().withMessage('ID doit être un entier')
 ], adminController.deleteClient);
 
-// ============================================
-// GESTION DE LA MAINTENANCE
-// ============================================
-
 /**
- * GET /api/admin/maintenance
- * Liste de l'historique de maintenance
- * Query params: page, limit, car_id, type_maintenance
+ * @swagger
+ * /admin/maintenance:
+ *   get:
+ *     summary: Liste de l'historique de maintenance
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Historique récupéré
  */
 router.get('/maintenance', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page doit être un entier positif'),
@@ -202,8 +396,28 @@ router.get('/maintenance', [
 ], adminController.getMaintenanceHistory);
 
 /**
- * POST /api/admin/maintenance
- * Ajouter une nouvelle maintenance
+ * @swagger
+ * /admin/maintenance:
+ *   post:
+ *     summary: Ajouter une nouvelle maintenance
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [car_id, type_maintenance, cout]
+ *             properties:
+ *               car_id: { type: integer }
+ *               type_maintenance: { type: string }
+ *               cout: { type: number }
+ *               description: { type: string }
+ *     responses:
+ *       201:
+ *         description: Maintenance enregistrée
  */
 router.post('/maintenance', [
   body('car_id').isInt().withMessage('Car ID doit être un entier'),
@@ -214,8 +428,21 @@ router.post('/maintenance', [
 ], adminController.createMaintenance);
 
 /**
- * PUT /api/admin/maintenance/:id
- * Modifier une maintenance
+ * @swagger
+ * /admin/maintenance/{id}:
+ *   put:
+ *     summary: Modifier une maintenance
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Mis à jour avec succès
  */
 router.put('/maintenance/:id', [
   param('id').isInt().withMessage('ID doit être un entier'),
@@ -226,77 +453,42 @@ router.put('/maintenance/:id', [
   body('date_maintenance').optional().isISO8601().withMessage('Date invalide')
 ], adminController.updateMaintenance);
 
-
-/** * DELETE /api/admin/maintenance/:id
- * Supprimer une maintenance
+/**
+ * @swagger
+ * /admin/maintenance/{id}:
+ *   delete:
+ *     summary: Supprimer une maintenance
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Supprimé
  */
 router.delete('/maintenance/:id', [
   param('id').isInt().withMessage('ID doit être un entier')
 ], adminController.deleteMaintenance);
 
-
-
 /**
- * DELETE /api/admin/maintenance/:id
- * Supprimer une maintenance
- */
-router.delete('/maintenance/:id', [
-  param('id').isInt().withMessage('ID doit être un entier')
-], adminController.deleteMaintenance);
-
-// ============================================
-// GESTION DES FEEDBACKS
-// ============================================
-
-/**
- * GET /api/admin/feedbacks
- * Liste des avis clients
- * Query params: page, limit
+ * @swagger
+ * /admin/feedbacks:
+ *   get:
+ *     summary: Liste des avis clients
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Avis récupérés
  */
 router.get('/feedbacks', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page doit être un entier positif'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit doit être entre 1 et 100')
 ], adminController.getFeedbacks);
-
-// // adminController.js
-
-
-// exports.updateMaintenance = async (req, res, next) => {
-//   const { id } = req.params;
-//   const { car_id, type_maintenance, description, cout, date_maintenance } = req.body;
-
-//   try {
-//     const result = await pool.query(
-//       `UPDATE maintenance 
-//        SET car_id=$1, type_maintenance=$2, description=$3, cout=$4, date_maintenance=$5 
-//        WHERE id=$6 RETURNING *`,
-//       [car_id, type_maintenance, description, cout, date_maintenance, id]
-//     );
-
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({ success: false, message: 'Maintenance non trouvée' });
-//     }
-
-//     res.json({ success: true, data: result.rows[0] });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-// exports.deleteMaintenance = async (req, res, next) => {
-//   const { id } = req.params;
-
-//   try {
-//     const result = await pool.query(`DELETE FROM maintenance WHERE id=$1 RETURNING *`, [id]);
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({ success: false, message: 'Maintenance non trouvée' });
-//     }
-//     res.json({ success: true, message: 'Maintenance supprimée' });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-
 
 module.exports = router;
