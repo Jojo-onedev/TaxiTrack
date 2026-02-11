@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Créer le build de production
-RUN npm run build
+RUN npx vite build
 
 # Étape 2 : Serveur de production
 FROM nginx:stable-alpine
