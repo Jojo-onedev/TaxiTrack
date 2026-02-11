@@ -1,5 +1,5 @@
 const pool = require('../config/database');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 /**
@@ -22,7 +22,7 @@ const generateToken = (user) => {
  */
 const registerClient = async (req, res, next) => {
   const client = await pool.connect();
-  
+
   try {
     const { email, password, nom, prenom, telephone, lieu_residence } = req.body;
 
@@ -124,7 +124,7 @@ const login = async (req, res, next) => {
 
     // Récupérer le profil selon le rôle
     let profile = null;
-    
+
     if (user.role === 'client') {
       const clientProfile = await pool.query(
         'SELECT nom, prenom, telephone, lieu_residence FROM client_profiles WHERE user_id = $1',
@@ -223,7 +223,7 @@ const getMe = async (req, res, next) => {
  */
 const updateProfile = async (req, res, next) => {
   const client = await pool.connect();
-  
+
   try {
     const userId = req.user.id;
     const userRole = req.user.role;
