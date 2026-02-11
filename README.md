@@ -29,6 +29,9 @@ La toute première fois que vous lancez le projet, vous devez créer les tables.
 ```bash
 # Entrer dans le serveur backend pour créer les tables
 docker exec -it taxitrack_backend npm run db:migrate
+# Appliquer les mises à jour de structure nécessaires
+docker exec -it taxitrack_backend npm run db:add-driver-online-status
+docker exec -it taxitrack_backend npm run db:update-ride-status
 # Ajouter des données de test (optionnel)
 docker exec -it taxitrack_backend npm run db:seed
 ```
